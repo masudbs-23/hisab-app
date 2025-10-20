@@ -20,7 +20,7 @@ import {
   getUserTransactions,
   getCurrentBalance,
 } from '../services/DatabaseService';
-import {readAndParseSMS, requestSMSPermission} from '../services/SMSService';
+import {readAndParseSMS, requestSMSPermission, testSMSParsing} from '../services/SMSService';
 
 const {width, height} = Dimensions.get('window');
 
@@ -68,20 +68,48 @@ const HomeScreen = () => {
     }
   };
 
+  const handleTestParsing = () => {
+    console.log('Running SMS parsing test...');
+    testSMSParsing();
+    Alert.alert(
+      'Test Running',
+      'Check console logs (Metro bundler) to see test results',
+    );
+  };
+
   const syncSMSTransactions = async () => {
     if (!user) return;
     
     try {
+      console.log('Starting SMS sync...');
       const result: any = await readAndParseSMS(user.id);
-      if (result.success && result.count > 0) {
+      console.log('SMS sync result:', result);
+      
+      if (result.success) {
+        if (result.count > 0) {
+          Alert.alert(
+            'সফল / Success',
+            `${result.count} টি লেনদেন SMS থেকে যোগ হয়েছে\n${result.count} transactions synced from SMS`,
+          );
+          loadData();
+        } else {
+          Alert.alert(
+            'তথ্য / Info',
+            'কোনো নতুন লেনদেন পাওয়া যায়নি। নিশ্চিত করুন:\n\n1. Phone এ bKash SMS আছে\n2. SMS permission দেওয়া আছে\n\nNo new transactions found. Please check:\n1. You have bKash SMS\n2. SMS permission is granted',
+          );
+        }
+      } else {
         Alert.alert(
-          'Success',
-          `${result.count} transactions synced from SMS`,
+          'ত্রুটি / Error',
+          'SMS পড়তে সমস্যা হয়েছে। SMS permission দিয়েছেন কিনা চেক করুন।\n\nFailed to read SMS. Please check SMS permission.',
         );
-        loadData();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error syncing SMS:', error);
+      Alert.alert(
+        'ত্রুটি / Error',
+        `SMS sync করতে সমস্যা: ${error.message || error}\n\nError syncing SMS`,
+      );
     }
   };
 
@@ -390,7 +418,8 @@ const HomeScreen = () => {
 
         <TouchableOpacity 
           style={styles.syncButton}
-          onPress={syncSMSTransactions}>
+          onPress={syncSMSTransactions}
+          onLongPress={handleTestParsing}>
           <Icon name="sync-outline" size={24} color="#00b894" />
         </TouchableOpacity>
       </View>

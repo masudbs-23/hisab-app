@@ -41,6 +41,8 @@ export const requestSMSPermission = async () => {
 
 export const parseBkashSMS = (body: string) => {
   const patterns = {
+    // Cash In from number: "Cash In Tk 3,045.00 from 01851528913 successful..."
+    cashInFrom: /Cash In Tk\s*([\d,]+\.?\d*)\s+from\s+([\d]+)\s+successful.*TrxID\s+(\w+)/i,
     // Received Deposit: "You have received deposit of Tk 550.00 from..."
     receivedDeposit: /received deposit of Tk\s*([\d,]+\.?\d*).*from\s+(.+?)\s*\..*TrxID\s+(\w+)/i,
     // Bill Payment: "Bill Payment of Tk 50.00 for..."
@@ -59,9 +61,33 @@ export const parseBkashSMS = (body: string) => {
 
   let transaction: any = null;
 
+  // Check Cash In from number (Income)
+  const cashInFromMatch = body.match(patterns.cashInFrom);
+  if (cashInFromMatch) {
+    const amount = parseFloat(cashInFromMatch[1].replace(/,/g, ''));
+    const phoneNumber = cashInFromMatch[2];
+    const trxId = cashInFromMatch[3];
+    const balanceMatch = body.match(patterns.balance);
+    const feeMatch = body.match(patterns.fee);
+
+    transaction = {
+      type: 'income',
+      amount,
+      description: `Cash In from ${phoneNumber}`,
+      trxId,
+      bank: 'bKash',
+      method: 'Cash In',
+      category: 'Cash In',
+      recipient: phoneNumber,
+      balance: balanceMatch ? parseFloat(balanceMatch[1].replace(/,/g, '')) : 0,
+      fee: feeMatch ? parseFloat(feeMatch[1].replace(/,/g, '')) : 0,
+      smsBody: body,
+    };
+  }
+
   // Check Received Deposit (Income)
   const receivedDepositMatch = body.match(patterns.receivedDeposit);
-  if (receivedDepositMatch) {
+  if (receivedDepositMatch && !transaction) {
     const amount = parseFloat(receivedDepositMatch[1].replace(/,/g, ''));
     const source = receivedDepositMatch[2].trim();
     const trxId = receivedDepositMatch[3];
@@ -259,18 +285,25 @@ export const parseCityBankSMS = (body: string) => {
 };
 
 export const parseSMS = (address: string, body: string) => {
+  console.log('SMS Address:', address, 'Body preview:', body.substring(0, 50));
+  
   // Check if sender is from a bank
   const isBank = BANK_SENDERS.some(sender =>
     address.toUpperCase().includes(sender.toUpperCase()),
   );
 
   if (!isBank) {
+    console.log('Not a bank sender');
     return null;
   }
 
+  console.log('Bank SMS detected from:', address);
+
   // Try to parse based on bank
   if (address.toUpperCase().includes('BKASH')) {
-    return parseBkashSMS(body);
+    const result = parseBkashSMS(body);
+    console.log('bKash parse result:', result ? 'SUCCESS' : 'FAILED');
+    return result;
   } else if (
     address.toUpperCase().includes('CITY') ||
     address.toUpperCase().includes('AMEX')
@@ -306,25 +339,31 @@ export const readAndParseSMS = async (userId: number) => {
             const messages = JSON.parse(smsList);
             let transactionCount = 0;
 
+            console.log(`Total SMS read: ${messages.length}`);
+
             for (const sms of messages) {
+              console.log('Processing SMS from:', sms.address);
               const parsedTransaction = parseSMS(sms.address, sms.body);
               
               if (parsedTransaction) {
+                console.log('Transaction parsed:', parsedTransaction.description, parsedTransaction.amount);
                 // Add date from SMS
                 parsedTransaction.date = new Date(sms.date).toISOString();
                 
                 try {
                   await addTransaction(userId, parsedTransaction);
                   transactionCount++;
+                  console.log('Transaction added successfully');
                 } catch (error) {
                   console.log('Transaction already exists or error:', error);
                 }
               }
             }
 
-            console.log(`Parsed ${transactionCount} transactions from SMS`);
+            console.log(`Parsed ${transactionCount} transactions from ${messages.length} SMS`);
             resolve({success: true, count: transactionCount});
           } catch (error) {
+            console.error('Error parsing SMS list:', error);
             reject(error);
           }
         },
@@ -334,5 +373,40 @@ export const readAndParseSMS = async (userId: number) => {
     console.error('Error reading SMS:', error);
     return {success: false, count: 0};
   }
+};
+
+// Test function to verify SMS parsing
+export const testSMSParsing = () => {
+  const testMessages = [
+    {
+      address: 'bKash',
+      body: 'Cash In Tk 3,045.00 from 01851528913 successful. Fee Tk 0.00. Balance Tk 10,601.71. TrxID CIP6OK01LU at 25/09/2025 12:09.',
+    },
+    {
+      address: 'bKash',
+      body: 'You have received deposit of Tk 550.00 from Amex Card. Fee Tk 0.00. Balance Tk 557.40. TrxID CJK3FL5BBF at 20/10/2025 10:45',
+    },
+    {
+      address: 'bKash',
+      body: 'Bill Payment of Tk 50.00 for VISA Credit Card is successful. Fee Tk 0.74. Balance Tk 25.90. TrxID CJI5E7812X at 18/10/2025 20:17',
+    },
+    {
+      address: 'bKash',
+      body: 'Send Money Tk 250.00 to 01621161449 successful. Ref 1. Fee Tk 0.00. Balance Tk 44.97. TrxID CJF8BLXLD4 at 15/10/2025 23:42',
+    },
+  ];
+
+  console.log('===== Testing SMS Parsing =====');
+  testMessages.forEach((msg, index) => {
+    console.log(`\nTest ${index + 1}:`);
+    console.log('Address:', msg.address);
+    console.log('Body:', msg.body.substring(0, 100));
+    const result = parseSMS(msg.address, msg.body);
+    console.log('Result:', result);
+    if (result) {
+      console.log('Type:', result.type, '| Amount:', result.amount, '| Description:', result.description);
+    }
+  });
+  console.log('===== Test Complete =====');
 };
 
