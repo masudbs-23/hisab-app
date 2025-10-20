@@ -41,67 +41,71 @@ export const requestSMSPermission = async () => {
 
 export const parseBkashSMS = (body: string) => {
   const patterns = {
+    // Received Deposit: "You have received deposit of Tk 550.00 from..."
+    receivedDeposit: /received deposit of Tk\s*([\d,]+\.?\d*).*from\s+(.+?)\s*\..*TrxID\s+(\w+)/i,
+    // Bill Payment: "Bill Payment of Tk 50.00 for..."
+    billPayment: /Bill Payment of Tk\s*([\d,]+\.?\d*)\s+for\s+(.+?)\s+is successful.*TrxID\s+(\w+)/i,
+    // Send Money: "Send Money Tk 250.00 to 01621161449..."
+    sendMoney: /Send Money Tk\s*([\d,]+\.?\d*)\s+to\s+([\d]+)\s+successful.*TrxID\s+(\w+)/i,
     // Payment/Send Money: "Tk550.00 sent to BKASH.COM..."
     payment: /Tk([\d,]+\.?\d*)\s+sent\s+to\s+(.+?)\s+.*TrxID\s+(\w+)/i,
     // Cash In: "Tk550.00 deposited..."
     cashIn: /Tk([\d,]+\.?\d*)\s+deposited.*TrxID\s+(\w+)/i,
-    // Bill Payment: "Tk50.00 bill payment..."
-    billPay: /Tk([\d,]+\.?\d*)\s+bill payment.*TrxID\s+(\w+)/i,
-    // Send Money: "Send Money Tk250.00 to 01621161449..."
-    sendMoney: /Send Money Tk([\d,]+\.?\d*)\s+to\s+([\d]+).*TrxID\s+(\w+)/i,
-    // Balance
-    balance: /balance is Tk([\d,]+\.?\d*)/i,
-    // Fee
-    fee: /fee Tk([\d,]+\.?\d*)/i,
+    // Balance: "Balance Tk 557.40"
+    balance: /Balance Tk\s*([\d,]+\.?\d*)/i,
+    // Fee: "Fee Tk 0.00"
+    fee: /Fee Tk\s*([\d,]+\.?\d*)/i,
   };
 
   let transaction: any = null;
 
-  // Check Payment
-  const paymentMatch = body.match(patterns.payment);
-  if (paymentMatch) {
-    const amount = parseFloat(paymentMatch[1].replace(/,/g, ''));
-    const merchant = paymentMatch[2].trim();
-    const trxId = paymentMatch[3];
+  // Check Received Deposit (Income)
+  const receivedDepositMatch = body.match(patterns.receivedDeposit);
+  if (receivedDepositMatch) {
+    const amount = parseFloat(receivedDepositMatch[1].replace(/,/g, ''));
+    const source = receivedDepositMatch[2].trim();
+    const trxId = receivedDepositMatch[3];
     const balanceMatch = body.match(patterns.balance);
     const feeMatch = body.match(patterns.fee);
 
     transaction = {
-      type: 'expense',
+      type: 'income',
       amount,
-      description: `Purchased at ${merchant}`,
+      description: `Received from ${source}`,
       trxId,
       bank: 'bKash',
-      method: 'Payment',
-      category: 'Shopping',
+      method: 'Received Deposit',
+      category: 'Deposit',
       balance: balanceMatch ? parseFloat(balanceMatch[1].replace(/,/g, '')) : 0,
       fee: feeMatch ? parseFloat(feeMatch[1].replace(/,/g, '')) : 0,
       smsBody: body,
     };
   }
 
-  // Check Cash In
-  const cashInMatch = body.match(patterns.cashIn);
-  if (cashInMatch && !transaction) {
-    const amount = parseFloat(cashInMatch[1].replace(/,/g, ''));
-    const trxId = cashInMatch[2];
+  // Check Bill Payment (Expense)
+  const billPaymentMatch = body.match(patterns.billPayment);
+  if (billPaymentMatch && !transaction) {
+    const amount = parseFloat(billPaymentMatch[1].replace(/,/g, ''));
+    const billFor = billPaymentMatch[2].trim();
+    const trxId = billPaymentMatch[3];
     const balanceMatch = body.match(patterns.balance);
+    const feeMatch = body.match(patterns.fee);
 
     transaction = {
-      type: 'income',
+      type: 'expense',
       amount,
-      description: 'Deposit to bKash',
+      description: `Bill Payment for ${billFor}`,
       trxId,
       bank: 'bKash',
-      method: 'Cash In',
-      category: 'Deposit',
+      method: 'Bill Payment',
+      category: 'Bill Payment',
       balance: balanceMatch ? parseFloat(balanceMatch[1].replace(/,/g, '')) : 0,
-      fee: 0,
+      fee: feeMatch ? parseFloat(feeMatch[1].replace(/,/g, '')) : 0,
       smsBody: body,
     };
   }
 
-  // Check Send Money
+  // Check Send Money (Expense)
   const sendMoneyMatch = body.match(patterns.sendMoney);
   if (sendMoneyMatch && !transaction) {
     const amount = parseFloat(sendMoneyMatch[1].replace(/,/g, ''));
@@ -125,24 +129,46 @@ export const parseBkashSMS = (body: string) => {
     };
   }
 
-  // Check Bill Payment
-  const billPayMatch = body.match(patterns.billPay);
-  if (billPayMatch && !transaction) {
-    const amount = parseFloat(billPayMatch[1].replace(/,/g, ''));
-    const trxId = billPayMatch[2];
+  // Check Payment (Expense) - Old format
+  const paymentMatch = body.match(patterns.payment);
+  if (paymentMatch && !transaction) {
+    const amount = parseFloat(paymentMatch[1].replace(/,/g, ''));
+    const merchant = paymentMatch[2].trim();
+    const trxId = paymentMatch[3];
     const balanceMatch = body.match(patterns.balance);
     const feeMatch = body.match(patterns.fee);
 
     transaction = {
       type: 'expense',
       amount,
-      description: 'Bill Payment',
+      description: `Payment to ${merchant}`,
       trxId,
       bank: 'bKash',
-      method: 'Bill Pay',
-      category: 'Bill Payment',
+      method: 'Payment',
+      category: 'Shopping',
       balance: balanceMatch ? parseFloat(balanceMatch[1].replace(/,/g, '')) : 0,
       fee: feeMatch ? parseFloat(feeMatch[1].replace(/,/g, '')) : 0,
+      smsBody: body,
+    };
+  }
+
+  // Check Cash In (Income) - Old format
+  const cashInMatch = body.match(patterns.cashIn);
+  if (cashInMatch && !transaction) {
+    const amount = parseFloat(cashInMatch[1].replace(/,/g, ''));
+    const trxId = cashInMatch[2];
+    const balanceMatch = body.match(patterns.balance);
+
+    transaction = {
+      type: 'income',
+      amount,
+      description: 'Cash In to bKash',
+      trxId,
+      bank: 'bKash',
+      method: 'Cash In',
+      category: 'Deposit',
+      balance: balanceMatch ? parseFloat(balanceMatch[1].replace(/,/g, '')) : 0,
+      fee: 0,
       smsBody: body,
     };
   }

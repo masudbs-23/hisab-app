@@ -1,0 +1,162 @@
+╔══════════════════════════════════════════════════════════════╗
+║           📱 Hisab App - সহজ Install নির্দেশনা              ║
+╚══════════════════════════════════════════════════════════════╝
+
+❌ Developer Mode লাগবে না!
+❌ Root লাগবে না!
+❌ Technical knowledge লাগবে না!
+
+✅ শুধু Play Protect OFF করুন (২ মিনিট)
+
+───────────────────────────────────────────────────────────────
+
+🔢 ৫টি সহজ ধাপ:
+
+1️⃣  Settings খুলুন → Search করুন "play protect"
+
+2️⃣  "Google Play Protect" খুলুন
+
+3️⃣  উপরে ডান দিকে ⚙️ (Settings) এ click করুন
+
+4️⃣  "Scan apps with Play Protect" - OFF করুন
+
+5️⃣  app-release.apk install করুন ✅
+
+───────────────────────────────────────────────────────────────
+
+📝 বিস্তারিত (Screenshot সহ):
+
+┌─────────────────────────────────────┐
+│ 1. Settings খুলুন                   │
+└─────────────────────────────────────┘
+   Phone এর Settings app খুলুন
+
+
+┌─────────────────────────────────────┐
+│ 2. Search করুন                      │
+└─────────────────────────────────────┘
+   উপরে Search bar এ type করুন:
+   "play protect"
+
+
+┌─────────────────────────────────────┐
+│ 3. Play Protect খুলুন              │
+└─────────────────────────────────────┘
+   "Google Play Protect" option এ
+   tap করুন
+
+
+┌─────────────────────────────────────┐
+│ 4. Settings এ যান                   │
+└─────────────────────────────────────┘
+   উপরে ডান দিকে দেখবেন:
+   ⋮ (three dots) অথবা ⚙️ (gear icon)
+   এটাতে tap করুন
+
+
+┌─────────────────────────────────────┐
+│ 5. Scanning OFF করুন               │
+└─────────────────────────────────────┘
+   "Scan apps with Play Protect"
+   এই option এর পাশে toggle আছে
+   
+   ON থাকলে: [━━━━━━━○] (blue/green)
+   
+   Tap করে OFF করুন
+   
+   OFF হলে: [○━━━━━━━] (gray)
+
+
+┌─────────────────────────────────────┐
+│ 6. Install করুন                     │
+└─────────────────────────────────────┘
+   Back button press করুন
+   app-release.apk file খুলুন
+   [Install] button এ tap করুন
+   ✅ Install হয়ে যাবে!
+
+───────────────────────────────────────────────────────────────
+
+❓ কেন Play Protect block করছে?
+
+🔴 SMS Permission (bank transaction read করার জন্য)
+🔴 Unsigned APK (Play Store এ নেই)
+🔴 Unknown Developer (Google চেনে না)
+
+───────────────────────────────────────────────────────────────
+
+✅ App কি Safe?
+
+✔️  100% নিরাপদ!
+✔️  আপনার own code
+✔️  Local database (phone এর ভিতরে)
+✔️  কোন server নেই
+✔️  কোন data upload নেই
+✔️  SMS শুধু bank transaction track করার জন্য
+
+───────────────────────────────────────────────────────────────
+
+💡 কিছু Tips:
+
+📌 Install এর পর Play Protect আবার ON করতে পারেন
+   (Already installed app এর problem হবে না)
+
+📌 Developer mode লাগবে না!
+   (এটা শুধু development এর জন্য)
+
+📌 একবার install করলে পরে আর Play Protect OFF করতে হবে না
+
+📌 Update করতে চাইলে আবার same process
+
+───────────────────────────────────────────────────────────────
+
+🆘 এখনো সমস্যা?
+
+যদি Play Protect option না পান:
+
+পথ ১: Settings → Google → Security → Play Protect
+
+পথ ২: Play Store → Profile (top right) → Play Protect
+
+পথ ৩: Google app → Profile → Settings → Security
+
+───────────────────────────────────────────────────────────────
+
+🎯 মনে রাখুন:
+
+❌ Developer Mode = Not Needed
+✅ Play Protect OFF = Solution
+⏱️  Time = 2 minutes
+🎓 Knowledge = Not Required
+🎉 Result = App Installed!
+
+───────────────────────────────────────────────────────────────
+
+📚 আরো তথ্যের জন্য:
+
+📄 PLAY_PROTECT_OFF_STEPS.md - বিস্তারিত গাইড
+📄 BANGLA_INSTALL_GUIDE.md - সম্পূর্ণ বাংলা গাইড
+📄 QUICK_FIX.txt - Quick reference
+
+🔧 Script available:
+   build-installable-apk.bat - APK build করার জন্য
+
+───────────────────────────────────────────────────────────────
+
+✅ Summary:
+
+Settings → Play Protect → OFF → Install → Done! 🎉
+
+───────────────────────────────────────────────────────────────
+
+💬 বন্ধুদের share করতে চাইলে:
+
+"এই app install করতে Play Protect temporarily OFF করতে হবে।
+এটা normal, app টি সম্পূর্ণ নিরাপদ।
+
+Settings → Play Protect → OFF করুন → Install করুন ✅"
+
+╔══════════════════════════════════════════════════════════════╗
+║        সহজ, দ্রুত, নিরাপদ - শুধু Play Protect OFF করুন!   ║
+╚══════════════════════════════════════════════════════════════╝
+

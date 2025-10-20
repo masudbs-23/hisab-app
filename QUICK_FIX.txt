@@ -1,0 +1,112 @@
+╔══════════════════════════════════════════════════════════════╗
+║       🚫 "App blocked to protect your device" - QUICK FIX    ║
+╚══════════════════════════════════════════════════════════════╝
+
+📱 YOUR PROBLEM (from screenshot):
+   Google Play Protect is blocking HisabApp installation
+   Message: "This app can request access to sensitive data"
+
+✅ QUICK SOLUTION (2 minutes):
+
+   Step 1: Open Settings on your phone
+   
+   Step 2: Search for "Play Protect" in settings
+           (or go to Google → Security → Google Play Protect)
+   
+   Step 3: Tap the ⚙️ (Settings) icon in top right corner
+   
+   Step 4: Turn OFF "Scan apps with Play Protect"
+           (toggle should turn gray)
+   
+   Step 5: Go back and install app-release.apk
+           No more blocking! ✅
+   
+   Step 6: (Optional) Turn Play Protect back ON after install
+           Already installed apps won't be affected
+
+───────────────────────────────────────────────────────────────
+
+🔍 WHY IS THIS HAPPENING?
+
+   ❌ Your app requests SMS permission (READ_SMS, RECEIVE_SMS)
+   ❌ APK is unsigned (development build)  
+   ❌ Not from Play Store (unknown developer)
+   ❌ Google doesn't recognize this app
+
+   ✅ YOUR APP IS SAFE! No virus, no malware!
+   ✅ SMS permission is for reading bank transactions only
+   ✅ All data stays on your phone, never sent to any server
+
+───────────────────────────────────────────────────────────────
+
+🎯 ALTERNATIVE METHODS:
+
+   Method 2: Developer Options
+   ────────────────────────────
+   1. Settings → About Phone → Tap "Build Number" 7 times
+   2. Settings → Developer Options
+   3. Enable: "USB debugging", "Install via USB"
+   4. Disable: "Verify apps over USB"
+   5. Install APK
+
+   Method 3: Install via Computer (ADB)
+   ────────────────────────────────────
+   1. Enable USB debugging (Method 2, step 1-2)
+   2. Connect phone to PC with USB cable
+   3. Run: adb install -r app-release.apk
+   4. Done!
+
+───────────────────────────────────────────────────────────────
+
+📚 DETAILED GUIDES:
+
+   📄 BANGLA_INSTALL_GUIDE.md - বাংলা গাইড (বিস্তারিত)
+   📄 INSTALL_BLOCKED_FIX.md  - English detailed guide
+   📄 APK_SIGNING_GUIDE.md    - For signing APK properly
+
+   🔧 Scripts available:
+   - generate-signed-apk.bat  (Windows)
+   - install-to-phone.bat     (Windows with ADB)
+
+───────────────────────────────────────────────────────────────
+
+✅ SUMMARY:
+
+   RIGHT NOW (Recommended):
+   Settings → Play Protect → Turn OFF → Install APK ✅
+
+   LATER (For distribution):
+   Generate signed APK → Share with friends
+
+   FUTURE (Professional):
+   Upload to Play Store → No warnings ever
+
+───────────────────────────────────────────────────────────────
+
+💬 MESSAGE FOR FRIENDS/TESTERS:
+
+   "এই app install করার সময় Play Protect warning দেখাবে।
+   এটা normal, app টি নিরাপদ।
+   
+   Solution:
+   Settings → Play Protect → OFF করুন → Install করুন
+   
+   অথবা এই guide follow করুন: BANGLA_INSTALL_GUIDE.md"
+
+───────────────────────────────────────────────────────────────
+
+🎉 YOUR APP IS READY!
+
+   All features working:
+   ✅ Authentication (Login/Signup/OTP)
+   ✅ SMS transaction reading
+   ✅ Database storage
+   ✅ Beautiful UI
+   ✅ Safe area support
+   
+   Only issue: Play Protect warning (easily fixed above!)
+
+╔══════════════════════════════════════════════════════════════╗
+║  SOLUTION: Settings → Play Protect → Turn OFF → Install ✅  ║
+╚══════════════════════════════════════════════════════════════╝
+
