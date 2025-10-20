@@ -18,7 +18,7 @@ const {width, height} = Dimensions.get('window');
 
 const OTPVerificationScreen = ({navigation, route}: any) => {
   const email = route?.params?.email || 'user@example.com';
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [otp, setOtp] = useState(['', '', '', '']);
   const [errors, setErrors] = useState<{otp?: string; general?: string}>({});
   const [loading, setLoading] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
@@ -38,7 +38,7 @@ const OTPVerificationScreen = ({navigation, route}: any) => {
     setOtp(newOtp);
     setErrors({});
 
-    if (value && index < 5) {
+    if (value && index < 3) {
       inputRefs.current[index + 1]?.focus();
     }
   };
@@ -77,17 +77,16 @@ const OTPVerificationScreen = ({navigation, route}: any) => {
   const handleVerify = async () => {
     const otpString = otp.join('');
 
-    if (otpString.length !== 6) {
-      setErrors({otp: 'Please enter complete 6-digit OTP'});
+    if (otpString.length !== 4) {
+      setErrors({otp: 'Please enter complete 4-digit OTP'});
       shakeInputs();
       return;
     }
 
     setLoading(true);
     try {
-      // Verify OTP (fixed 1234, but we accept 6 digits where first 4 are 1234)
-      const otpToVerify = otpString.substring(0, 4);
-      await verifyOTP(email, otpToVerify);
+      // Verify OTP (fixed 1234)
+      await verifyOTP(email, otpString);
       
       Alert.alert(
         'Verification Successful',
@@ -104,7 +103,7 @@ const OTPVerificationScreen = ({navigation, route}: any) => {
         general: error.message || 'Invalid OTP. Please use 1234.',
       });
       shakeInputs();
-      setOtp(['', '', '', '', '', '']);
+      setOtp(['', '', '', '']);
       inputRefs.current[0]?.focus();
     } finally {
       setLoading(false);
@@ -154,7 +153,7 @@ const OTPVerificationScreen = ({navigation, route}: any) => {
 
           <Text style={styles.title}>Enter Verification Code</Text>
           <Text style={styles.subtitle}>
-            We've sent a 6-digit verification code to{'\n'}
+            We've sent a 4-digit verification code to{'\n'}
             <Text style={styles.emailText}>{email}</Text>
           </Text>
 
@@ -182,7 +181,9 @@ const OTPVerificationScreen = ({navigation, route}: any) => {
             {otp.map((digit, index) => (
               <TextInput
                 key={index}
-                ref={ref => (inputRefs.current[index] = ref)}
+                ref={(ref) => {
+                  inputRefs.current[index] = ref;
+                }}
                 style={[
                   styles.otpInput,
                   focusedIndex === index && styles.otpInputFocused,

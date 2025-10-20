@@ -31,26 +31,20 @@ const CustomTabBar = ({state, descriptors, navigation}: any) => {
           };
 
           return (
-            <TouchableOpacity
-              key={route.key}
-              accessibilityRole="button"
-              accessibilityState={isFocused ? {selected: true} : {}}
-              accessibilityLabel={options.tabBarAccessibilityLabel}
-              testID={options.tabBarTestID}
-              onPress={onPress}
-              style={styles.tab}>
-              <View
-                style={[
-                  styles.iconContainer,
-                  isFocused && styles.iconContainerActive,
-                ]}>
-                <Icon
-                  name={icons[route.name]}
-                  size={24}
-                  color={isFocused ? '#FFFFFF' : '#999'}
-                />
-              </View>
-            </TouchableOpacity>
+          <TouchableOpacity
+            key={route.key}
+            accessibilityRole="button"
+            accessibilityState={isFocused ? {selected: true} : {}}
+            accessibilityLabel={options.tabBarAccessibilityLabel}
+            testID={options.tabBarTestID}
+            onPress={onPress}
+            style={styles.tab}>
+            <Icon
+              name={icons[route.name]}
+              size={28}
+              color={isFocused ? '#00b894' : '#999'}
+            />
+          </TouchableOpacity>
           );
         })}
       </View>
@@ -88,16 +82,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  iconContainerActive: {
-    backgroundColor: '#4A90E2',
+    paddingVertical: 8,
   },
 });
 

@@ -1,6 +1,9 @@
 import React from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity} from 'react-native';
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
+const {height} = Dimensions.get('window');
 
 const TransactionScreen = () => {
   const transactions = [
@@ -52,7 +55,7 @@ const TransactionScreen = () => {
   ];
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Transactions</Text>
         <TouchableOpacity style={styles.filterButton}>
@@ -107,21 +110,28 @@ const TransactionScreen = () => {
       <TouchableOpacity style={styles.addButton}>
         <Icon name="plus" size={28} color="#FFFFFF" />
       </TouchableOpacity>
-    </View>
+
+      {/* Decorative Elements */}
+      <View style={styles.decorativeElements} pointerEvents="none">
+        <View style={[styles.circle, styles.circle1]} />
+        <View style={[styles.circle, styles.circle2]} />
+        <View style={[styles.circle, styles.circle3]} />
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#f8fffe',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#FFFFFF',
+    zIndex: 10,
   },
   headerTitle: {
     fontSize: 28,
@@ -132,7 +142,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   summary: {
-    backgroundColor: '#4A90E2',
+    backgroundColor: '#00b894',
     margin: 20,
     padding: 24,
     borderRadius: 20,
@@ -141,6 +151,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
     elevation: 8,
+    zIndex: 10,
   },
   summaryItem: {
     alignItems: 'center',
@@ -158,6 +169,7 @@ const styles = StyleSheet.create({
   transactionList: {
     flex: 1,
     paddingHorizontal: 20,
+    zIndex: 10,
   },
   sectionTitle: {
     fontSize: 18,
@@ -221,6 +233,41 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 4.65,
     elevation: 8,
+    zIndex: 10,
+  },
+  decorativeElements: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1,
+  },
+  circle: {
+    position: 'absolute',
+    borderRadius: 999,
+    opacity: 0.1,
+  },
+  circle1: {
+    width: 200,
+    height: 200,
+    backgroundColor: '#00b894',
+    top: -100,
+    right: -100,
+  },
+  circle2: {
+    width: 150,
+    height: 150,
+    backgroundColor: '#00a085',
+    bottom: -75,
+    left: -75,
+  },
+  circle3: {
+    width: 100,
+    height: 100,
+    backgroundColor: '#00b894',
+    top: height * 0.3,
+    right: -50,
   },
 });
 

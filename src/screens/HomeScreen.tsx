@@ -13,6 +13,7 @@ import {
   Alert,
   RefreshControl,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useAuth} from '../context/AuthContext';
 import {
@@ -71,7 +72,7 @@ const HomeScreen = () => {
     if (!user) return;
     
     try {
-      const result = await readAndParseSMS(user.id);
+      const result: any = await readAndParseSMS(user.id);
       if (result.success && result.count > 0) {
         Alert.alert(
           'Success',
@@ -369,7 +370,7 @@ const HomeScreen = () => {
   );
 
   return (
-    <View style={styles.screenContainer}>
+    <SafeAreaView style={styles.screenContainer} edges={['top']}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity style={styles.avatarContainer}>
@@ -435,7 +436,7 @@ const HomeScreen = () => {
         <View style={[styles.circle, styles.circle2]} />
         <View style={[styles.circle, styles.circle3]} />
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -449,12 +450,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 15,
-    elevation: 5,
     zIndex: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#f8fffe',
   },
   headerLeft: {
     flexDirection: 'row',

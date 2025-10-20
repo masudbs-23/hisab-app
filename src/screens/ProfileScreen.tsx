@@ -1,7 +1,10 @@
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Dimensions} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useAuth} from '../context/AuthContext';
+
+const {height} = Dimensions.get('window');
 
 const ProfileScreen = () => {
   const {user, logout} = useAuth();
@@ -34,29 +37,23 @@ const ProfileScreen = () => {
   ];
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.avatarContainer}>
-          <Icon name="account" size={60} color="#FFFFFF" />
-        </View>
-        <Text style={styles.userName}>{user?.email?.split('@')[0] || 'User'}</Text>
-        <Text style={styles.userEmail}>{user?.email || 'user@example.com'}</Text>
+    <SafeAreaView style={{flex: 1, backgroundColor: '#f8fffe'}} edges={['top']}>
+      {/* Header Bar with Title and Logout */}
+      <View style={styles.headerBar}>
+        <Text style={styles.headerTitle}>Profile</Text>
+        <TouchableOpacity onPress={handleLogout} style={styles.logoutIcon}>
+          <Icon name="logout" size={24} color="#F44336" />
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>45</Text>
-          <Text style={styles.statLabel}>Transactions</Text>
+      <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.avatarContainer}>
+          <Icon name="account" size={40} color="#FFFFFF" />
         </View>
-        <View style={styles.statDivider} />
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>12</Text>
-          <Text style={styles.statLabel}>Categories</Text>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>3</Text>
-          <Text style={styles.statLabel}>Budgets</Text>
+        <View style={styles.userInfoContainer}>
+          <Text style={styles.userName}>{user?.email?.split('@')[0] || 'User'}</Text>
+          <Text style={styles.userEmail}>{user?.email || 'user@example.com'}</Text>
         </View>
       </View>
 
@@ -74,80 +71,82 @@ const ProfileScreen = () => {
         ))}
       </View>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Icon name="logout" size={24} color="#F44336" />
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
-
       <View style={styles.version}>
         <Text style={styles.versionText}>Version 1.0.0</Text>
       </View>
     </ScrollView>
+
+    {/* Decorative Elements */}
+    <View style={styles.decorativeElements} pointerEvents="none">
+      <View style={[styles.circle, styles.circle1]} />
+      <View style={[styles.circle, styles.circle2]} />
+      <View style={[styles.circle, styles.circle3]} />
+    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#f8fffe',
   },
-  header: {
-    backgroundColor: '#4A90E2',
-    paddingTop: 40,
-    paddingBottom: 30,
+  headerBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    zIndex: 10,
   },
-  avatarContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  userName: {
+  headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#2d3436',
+  },
+  logoutIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#e9ecef',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 20,
+    zIndex: 10,
+  },
+  avatarContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: '#00b894',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  userInfoContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  userName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#2d3436',
     marginBottom: 4,
   },
   userEmail: {
-    fontSize: 16,
-    color: '#E8F4FD',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    margin: 20,
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  statLabel: {
     fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-  statDivider: {
-    width: 1,
-    backgroundColor: '#E0E0E0',
+    color: '#636e72',
   },
   menuContainer: {
     paddingHorizontal: 20,
+    paddingTop: 20,
+    zIndex: 10,
   },
   menuItem: {
     flexDirection: 'row',
@@ -175,23 +174,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
   },
-  logoutButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    margin: 20,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#F44336',
-  },
-  logoutText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#F44336',
-    marginLeft: 8,
-  },
   version: {
     alignItems: 'center',
     paddingVertical: 20,
@@ -199,6 +181,40 @@ const styles = StyleSheet.create({
   versionText: {
     fontSize: 14,
     color: '#999',
+  },
+  decorativeElements: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1,
+  },
+  circle: {
+    position: 'absolute',
+    borderRadius: 999,
+    opacity: 0.1,
+  },
+  circle1: {
+    width: 200,
+    height: 200,
+    backgroundColor: '#00b894',
+    top: -100,
+    right: -100,
+  },
+  circle2: {
+    width: 150,
+    height: 150,
+    backgroundColor: '#00a085',
+    bottom: -75,
+    left: -75,
+  },
+  circle3: {
+    width: 100,
+    height: 100,
+    backgroundColor: '#00b894',
+    top: height * 0.3,
+    right: -50,
   },
 });
 
