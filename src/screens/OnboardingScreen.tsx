@@ -1,5 +1,6 @@
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Dimensions} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, Dimensions, StatusBar} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const {width, height} = Dimensions.get('window');
 
@@ -9,7 +10,13 @@ const OnboardingScreen = ({navigation}: any) => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#f8fffe"
+        translucent={false}
+      />
+      <View style={styles.container}>
       {/* Enhanced Logo with Gradient Background */}
       <View style={styles.logoContainer}>
         <View style={styles.logoInnerCircle}>
@@ -73,11 +80,16 @@ const OnboardingScreen = ({navigation}: any) => {
         <View style={[styles.circle, styles.circle2]} />
         <View style={[styles.circle, styles.circle3]} />
       </View>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#f8fffe',
+  },
   container: {
     flex: 1,
     justifyContent: 'center',
