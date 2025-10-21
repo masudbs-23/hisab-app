@@ -46,7 +46,7 @@ interface Transaction {
   accountNo?: string;
 }
 
-const HomeScreen = () => {
+const HomeScreen = ({navigation}: any) => {
   const {user} = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
@@ -69,6 +69,11 @@ const HomeScreen = () => {
   const [titleError, setTitleError] = useState('');
   const [amountError, setAmountError] = useState('');
   const addSlideAnim = useState(new Animated.Value(height))[0];
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  
+  // Title suggestions
+  const expenseSuggestions = ['Rent', 'Travel', 'Shopping', 'Food', 'Bills', 'Entertainment', 'Health', 'Education'];
+  const incomeSuggestions = ['Salary', 'Part-time', 'Freelance', 'Business', 'Investment', 'Gift', 'Bonus'];
   
   // Month Filter
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
@@ -189,12 +194,21 @@ const HomeScreen = () => {
     setAmount('');
     setTitleError('');
     setAmountError('');
+    setShowSuggestions(false);
     setAddModalVisible(true);
     Animated.timing(addSlideAnim, {
       toValue: 0,
       duration: 300,
       useNativeDriver: true,
     }).start();
+  };
+
+  const handleSuggestionSelect = (suggestion: string) => {
+    setTitle(suggestion);
+    setShowSuggestions(false);
+    if (titleError) {
+      setTitleError('');
+    }
   };
 
   const closeAddModal = () => {
@@ -208,6 +222,7 @@ const HomeScreen = () => {
       setAmount('');
       setTitleError('');
       setAmountError('');
+      setShowSuggestions(false);
     });
   };
 
@@ -414,22 +429,62 @@ const HomeScreen = () => {
                 keyboardShouldPersistTaps="handled">
                 <View style={styles.inputContainer}>
                   <Text style={styles.inputLabel}>Title</Text>
-                  <TextInput
-                    style={[styles.textInput, titleError && styles.inputError]}
-                    placeholder="Enter title"
-                    placeholderTextColor="#b2bec3"
-                    value={title}
-                    onChangeText={(text) => {
-                      setTitle(text);
-                      if (titleError && text.trim()) {
-                        setTitleError('');
-                      }
-                    }}
-                    autoCorrect={false}
-                    autoCapitalize="sentences"
-                    returnKeyType="next"
-                    blurOnSubmit={false}
-                  />
+                  
+                  <View>
+                    <TouchableOpacity
+                      activeOpacity={1}
+                      onPress={() => setShowSuggestions(!showSuggestions)}>
+                      <TextInput
+                        style={[styles.textInput, titleError && styles.inputError]}
+                        placeholder="Select or enter title"
+                        placeholderTextColor="#b2bec3"
+                        value={title}
+                        onChangeText={(text) => {
+                          setTitle(text);
+                          if (titleError && text.trim()) {
+                            setTitleError('');
+                          }
+                        }}
+                        autoCorrect={false}
+                        autoCapitalize="sentences"
+                        returnKeyType="next"
+                        blurOnSubmit={false}
+                        onFocus={() => setShowSuggestions(true)}
+                      />
+                      <Icon
+                        name={showSuggestions ? "chevron-up" : "chevron-down"}
+                        size={20}
+                        color="#636e72"
+                        style={styles.dropdownIcon}
+                      />
+                    </TouchableOpacity>
+                    
+                    {/* Dropdown Suggestions */}
+                    {showSuggestions && (
+                      <View style={styles.dropdownContainer}>
+                        <ScrollView
+                          style={styles.dropdownScroll}
+                          nestedScrollEnabled={true}
+                          showsVerticalScrollIndicator={false}>
+                          {(transactionType === 'expense' ? expenseSuggestions : incomeSuggestions).map((suggestion, index) => (
+                            <TouchableOpacity
+                              key={index}
+                              style={styles.dropdownItem}
+                              onPress={() => handleSuggestionSelect(suggestion)}
+                              activeOpacity={0.7}>
+                              <Icon
+                                name={transactionType === 'income' ? "trending-up" : "trending-down"}
+                                size={18}
+                                color={transactionType === 'income' ? "#00b894" : "#e74c3c"}
+                              />
+                              <Text style={styles.dropdownItemText}>{suggestion}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </ScrollView>
+                      </View>
+                    )}
+                  </View>
+                  
                   <View style={styles.errorTextContainer}>
                     {titleError ? <Text style={styles.errorText}>{titleError}</Text> : null}
                   </View>
@@ -448,6 +503,7 @@ const HomeScreen = () => {
                         setAmountError('');
                       }
                     }}
+                    onFocus={() => setShowSuggestions(false)}
                     keyboardType="numeric"
                     autoCorrect={false}
                     returnKeyType="done"
@@ -670,7 +726,7 @@ const HomeScreen = () => {
         }>
         <SummaryCard />
 
-        {/* Add Income and Expense Buttons */}
+        {/* Add Income, Expense, and Statistics Buttons */}
         <View style={styles.actionButtonsContainer}>
           <TouchableOpacity
             style={[styles.actionButton, styles.incomeButton]}
@@ -684,6 +740,13 @@ const HomeScreen = () => {
             onPress={() => openAddModal('expense')}>
             <Icon name="remove-circle" size={24} color="#fff" />
             <Text style={styles.actionButtonText}>Add Expense</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, styles.statisticsButton]}
+            onPress={() => navigation.navigate('Statistics')}>
+            <Icon name="stats-chart" size={24} color="#fff" />
+            <Text style={styles.actionButtonText}>Statistics</Text>
           </TouchableOpacity>
         </View>
 
@@ -1108,10 +1171,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 15,
     marginBottom: 20,
-    gap: 12,
+    gap: 10,
+    flexWrap: 'wrap',
   },
   actionButton: {
     flex: 1,
+    minWidth: '30%',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -1128,6 +1193,9 @@ const styles = StyleSheet.create({
   },
   expenseButton: {
     backgroundColor: '#e74c3c',
+  },
+  statisticsButton: {
+    backgroundColor: '#4A90E2',
   },
   actionButtonText: {
     color: '#fff',
@@ -1193,8 +1261,44 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 15,
     paddingVertical: 14,
+    paddingRight: 40,
     fontSize: 16,
     color: '#2d3436',
+  },
+  dropdownIcon: {
+    position: 'absolute',
+    right: 15,
+    top: 15,
+  },
+  dropdownContainer: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#dfe6e9',
+    borderRadius: 12,
+    marginTop: 8,
+    maxHeight: 200,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  dropdownScroll: {
+    maxHeight: 200,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f3f5',
+  },
+  dropdownItemText: {
+    fontSize: 15,
+    color: '#2d3436',
+    fontWeight: '500',
   },
   inputError: {
     borderColor: '#e74c3c',

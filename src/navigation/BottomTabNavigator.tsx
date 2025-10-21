@@ -6,10 +6,23 @@ import TransactionScreen from '../screens/TransactionScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
 import NotificationScreen from '../screens/NotificationScreen';
+import StatisticsScreen from '../screens/StatisticsScreen';
 import CustomTabBar from '../components/CustomTabBar';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+
+const HomeStack = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}>
+      <Stack.Screen name="HomeMain" component={HomeScreen} />
+      <Stack.Screen name="Statistics" component={StatisticsScreen} />
+    </Stack.Navigator>
+  );
+};
 
 const ProfileStack = () => {
   return (
@@ -31,7 +44,7 @@ const BottomTabNavigator = () => {
       screenOptions={{
         headerShown: false,
       }}>
-      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Home" component={HomeStack} />
       <Tab.Screen name="Transaction" component={TransactionScreen} />
       <Tab.Screen name="Profile" component={ProfileStack} />
     </Tab.Navigator>
