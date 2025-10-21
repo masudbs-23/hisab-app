@@ -5,6 +5,9 @@ import {initDatabase} from '../services/DatabaseService';
 interface User {
   id: number;
   email: string;
+  name?: string;
+  phone?: string;
+  profileImage?: string;
 }
 
 interface AuthContextType {

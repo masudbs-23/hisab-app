@@ -12,6 +12,7 @@ import {
   Animated,
   Alert,
   RefreshControl,
+  TextInput,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -19,8 +20,11 @@ import {useAuth} from '../context/AuthContext';
 import {
   getUserTransactions,
   getCurrentBalance,
+  addTransaction,
 } from '../services/DatabaseService';
 import {readAndParseSMS, requestSMSPermission, testSMSParsing} from '../services/SMSService';
+import Button from '../components/Button';
+import Input from '../components/Input';
 
 const {width, height} = Dimensions.get('window');
 
@@ -45,6 +49,7 @@ interface Transaction {
 const HomeScreen = () => {
   const {user} = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [summary, setSummary] = useState({
     totalIncome: 0,
     totalExpense: 0,
@@ -55,6 +60,19 @@ const HomeScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const slideAnim = useState(new Animated.Value(height))[0];
+  
+  // Add Transaction Modal
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [transactionType, setTransactionType] = useState<'income' | 'expense'>('income');
+  const [title, setTitle] = useState('');
+  const [amount, setAmount] = useState('');
+  const [titleError, setTitleError] = useState('');
+  const [amountError, setAmountError] = useState('');
+  const addSlideAnim = useState(new Animated.Value(height))[0];
+  
+  // Month Filter
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const [showMonthFilter, setShowMonthFilter] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -88,27 +106,27 @@ const HomeScreen = () => {
       if (result.success) {
         if (result.count > 0) {
           Alert.alert(
-            'সফল / Success',
-            `${result.count} টি লেনদেন SMS থেকে যোগ হয়েছে\n${result.count} transactions synced from SMS`,
+            'Success',
+            `${result.count} transactions synced from SMS`,
           );
           loadData();
         } else {
           Alert.alert(
-            'তথ্য / Info',
-            'কোনো নতুন লেনদেন পাওয়া যায়নি। নিশ্চিত করুন:\n\n1. Phone এ bKash SMS আছে\n2. SMS permission দেওয়া আছে\n\nNo new transactions found. Please check:\n1. You have bKash SMS\n2. SMS permission is granted',
+            'Info',
+            'No new transactions found. Please check:\n1. You have bKash SMS\n2. SMS permission is granted',
           );
         }
       } else {
         Alert.alert(
-          'ত্রুটি / Error',
-          'SMS পড়তে সমস্যা হয়েছে। SMS permission দিয়েছেন কিনা চেক করুন।\n\nFailed to read SMS. Please check SMS permission.',
+          'Error',
+          'Failed to read SMS. Please check SMS permission.',
         );
       }
     } catch (error: any) {
       console.error('Error syncing SMS:', error);
       Alert.alert(
-        'ত্রুটি / Error',
-        `SMS sync করতে সমস্যা: ${error.message || error}\n\nError syncing SMS`,
+        'Error',
+        `Error syncing SMS: ${error.message || error}`,
       );
     }
   };
@@ -123,9 +141,132 @@ const HomeScreen = () => {
       ]);
 
       setTransactions(txns);
+      setFilteredTransactions(txns);
       setSummary(balance);
     } catch (error) {
       console.error('Error loading data:', error);
+    }
+  };
+
+  useEffect(() => {
+    filterTransactionsByMonth();
+  }, [selectedMonth, transactions]);
+
+  const filterTransactionsByMonth = () => {
+    if (selectedMonth === 'all') {
+      setFilteredTransactions(transactions);
+      return;
+    }
+
+    const filtered = transactions.filter(txn => {
+      const txnDate = new Date(txn.date);
+      const txnMonthYear = `${txnDate.getFullYear()}-${String(txnDate.getMonth() + 1).padStart(2, '0')}`;
+      return txnMonthYear === selectedMonth;
+    });
+    setFilteredTransactions(filtered);
+  };
+
+  const getAvailableMonths = () => {
+    const months = new Set<string>();
+    transactions.forEach(txn => {
+      const date = new Date(txn.date);
+      const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      months.add(monthYear);
+    });
+    return Array.from(months).sort().reverse();
+  };
+
+  const formatMonthDisplay = (monthStr: string) => {
+    if (monthStr === 'all') return 'All Transactions';
+    const [year, month] = monthStr.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1);
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+
+  const openAddModal = (type: 'income' | 'expense') => {
+    setTransactionType(type);
+    setTitle('');
+    setAmount('');
+    setTitleError('');
+    setAmountError('');
+    setAddModalVisible(true);
+    Animated.timing(addSlideAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const closeAddModal = () => {
+    Animated.timing(addSlideAnim, {
+      toValue: height,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setAddModalVisible(false);
+      setTitle('');
+      setAmount('');
+      setTitleError('');
+      setAmountError('');
+    });
+  };
+
+  const validateInputs = () => {
+    let isValid = true;
+    
+    if (!title.trim()) {
+      setTitleError('Title is required');
+      isValid = false;
+    } else {
+      setTitleError('');
+    }
+
+    if (!amount.trim()) {
+      setAmountError('Amount is required');
+      isValid = false;
+    } else if (isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+      setAmountError('Please enter a valid amount');
+      isValid = false;
+    } else {
+      setAmountError('');
+    }
+
+    return isValid;
+  };
+
+  const handleSaveTransaction = async () => {
+    if (!validateInputs() || !user) return;
+
+    try {
+      const transaction = {
+        type: transactionType,
+        amount: parseFloat(amount),
+        description: title,
+        date: new Date().toISOString(),
+        category: transactionType === 'income' ? 'Income' : 'Expense',
+        bank: 'Manual Entry',
+        method: 'Manual',
+        status: 'Completed',
+        trxId: `MANUAL-${Date.now()}`,
+        fee: 0,
+        balance: 0,
+      };
+
+      await addTransaction(user.id, transaction);
+      
+      Alert.alert(
+        'Success',
+        `${transactionType === 'income' ? 'Income' : 'Expense'} added successfully!`,
+      );
+
+      closeAddModal();
+      loadData();
+    } catch (error: any) {
+      console.error('Error saving transaction:', error);
+      Alert.alert(
+        'Error',
+        'Failed to add transaction. Please try again.',
+      );
     }
   };
 
@@ -240,6 +381,103 @@ const HomeScreen = () => {
         </Text>
       </View>
     </View>
+  );
+
+  const AddTransactionModal = () => (
+    <Modal
+      animationType="none"
+      transparent={true}
+      visible={addModalVisible}
+      onRequestClose={closeAddModal}>
+      <TouchableWithoutFeedback onPress={closeAddModal}>
+        <View style={styles.modalOverlay}>
+          <TouchableWithoutFeedback>
+            <Animated.View
+              style={[
+                styles.modalContent,
+                {transform: [{translateY: addSlideAnim}]},
+              ]}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>
+                  Add {transactionType === 'income' ? 'Income' : 'Expense'}
+                </Text>
+                <TouchableOpacity
+                  onPress={closeAddModal}
+                  style={styles.closeButton}>
+                  <Icon name="close" size={24} color="#636e72" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView 
+                style={styles.modalBody} 
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled">
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Title</Text>
+                  <TextInput
+                    style={[styles.textInput, titleError && styles.inputError]}
+                    placeholder="Enter title"
+                    placeholderTextColor="#b2bec3"
+                    value={title}
+                    onChangeText={(text) => {
+                      setTitle(text);
+                      if (titleError && text.trim()) {
+                        setTitleError('');
+                      }
+                    }}
+                    autoCorrect={false}
+                    autoCapitalize="sentences"
+                    returnKeyType="next"
+                    blurOnSubmit={false}
+                  />
+                  <View style={styles.errorTextContainer}>
+                    {titleError ? <Text style={styles.errorText}>{titleError}</Text> : null}
+                  </View>
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Amount (৳)</Text>
+                  <TextInput
+                    style={[styles.textInput, amountError && styles.inputError]}
+                    placeholder="Enter amount"
+                    placeholderTextColor="#b2bec3"
+                    value={amount}
+                    onChangeText={(text) => {
+                      setAmount(text);
+                      if (amountError && text.trim()) {
+                        setAmountError('');
+                      }
+                    }}
+                    keyboardType="numeric"
+                    autoCorrect={false}
+                    returnKeyType="done"
+                  />
+                  <View style={styles.errorTextContainer}>
+                    {amountError ? <Text style={styles.errorText}>{amountError}</Text> : null}
+                  </View>
+                </View>
+
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={styles.cancelButton}
+                    onPress={closeAddModal}
+                    activeOpacity={0.8}>
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.saveButton, transactionType === 'income' ? styles.incomeButton : styles.expenseButton]}
+                    onPress={handleSaveTransaction}
+                    activeOpacity={0.8}>
+                    <Text style={styles.saveButtonText}>Save</Text>
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
+            </Animated.View>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
+    </Modal>
   );
 
   const TransactionModal = () => (
@@ -432,16 +670,74 @@ const HomeScreen = () => {
         }>
         <SummaryCard />
 
-        <View style={styles.transactionsHeader}>
-          <Text style={styles.transactionsTitle}>Recent Transactions</Text>
-          <Text style={styles.transactionsCount}>
-            {transactions.length} Transactions
-          </Text>
+        {/* Add Income and Expense Buttons */}
+        <View style={styles.actionButtonsContainer}>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.incomeButton]}
+            onPress={() => openAddModal('income')}>
+            <Icon name="add-circle" size={24} color="#fff" />
+            <Text style={styles.actionButtonText}>Add Income</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, styles.expenseButton]}
+            onPress={() => openAddModal('expense')}>
+            <Icon name="remove-circle" size={24} color="#fff" />
+            <Text style={styles.actionButtonText}>Add Expense</Text>
+          </TouchableOpacity>
         </View>
 
-        {transactions.length > 0 ? (
+        <View style={styles.transactionsHeaderRow}>
+          <View>
+            <Text style={styles.transactionsTitle}>Transactions</Text>
+            <Text style={styles.transactionsCount}>
+              {filteredTransactions.length} found
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.filterButton}
+            onPress={() => setShowMonthFilter(!showMonthFilter)}>
+            <Icon name="filter" size={18} color="#00b894" />
+            <Text style={styles.filterButtonText}>
+              {formatMonthDisplay(selectedMonth)}
+            </Text>
+            <Icon name={showMonthFilter ? "chevron-up" : "chevron-down"} size={18} color="#00b894" />
+          </TouchableOpacity>
+        </View>
+
+        {showMonthFilter && (
+          <View style={styles.monthFilterContainer}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <TouchableOpacity
+                style={[styles.monthChip, selectedMonth === 'all' && styles.monthChipActive]}
+                onPress={() => {
+                  setSelectedMonth('all');
+                  setShowMonthFilter(false);
+                }}>
+                <Text style={[styles.monthChipText, selectedMonth === 'all' && styles.monthChipTextActive]}>
+                  All
+                </Text>
+              </TouchableOpacity>
+              {getAvailableMonths().map(month => (
+                <TouchableOpacity
+                  key={month}
+                  style={[styles.monthChip, selectedMonth === month && styles.monthChipActive]}
+                  onPress={() => {
+                    setSelectedMonth(month);
+                    setShowMonthFilter(false);
+                  }}>
+                  <Text style={[styles.monthChipText, selectedMonth === month && styles.monthChipTextActive]}>
+                    {formatMonthDisplay(month)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {filteredTransactions.length > 0 ? (
           <FlatList
-            data={transactions.slice(0, 10)}
+            data={filteredTransactions}
             renderItem={({item}) => <TransactionCard item={item} />}
             keyExtractor={item => item.id}
             scrollEnabled={false}
@@ -452,12 +748,15 @@ const HomeScreen = () => {
             <Icon name="wallet-outline" size={80} color="#dfe6e9" />
             <Text style={styles.emptyText}>No transactions yet</Text>
             <Text style={styles.emptySubText}>
-              Pull down to sync SMS transactions
+              {selectedMonth === 'all' 
+                ? 'Add income or expense to get started'
+                : 'No transactions in this month'}
             </Text>
           </View>
         )}
       </ScrollView>
 
+      <AddTransactionModal />
       <TransactionModal />
 
       <View style={styles.decorativeElements} pointerEvents="none">
@@ -590,7 +889,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
-  transactionsHeader: {
+  transactionsHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -602,9 +901,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#2d3436',
+    marginBottom: 4,
   },
   transactionsCount: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#636e72',
     fontWeight: '500',
   },
@@ -617,21 +917,14 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
     borderWidth: 1,
-    borderColor: '#f8f8f8',
+    borderColor: '#e9ecef',
   },
   incomeCard: {
-    borderLeftWidth: 4,
-    borderLeftColor: '#27ae60',
+    // No special styling
   },
   expenseCard: {
-    borderLeftWidth: 4,
-    borderLeftColor: '#e74c3c',
+    // No special styling
   },
   transactionHeader: {
     flexDirection: 'row',
@@ -809,6 +1102,150 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#00b894',
+  },
+  // Action Buttons
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 15,
+    marginBottom: 20,
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
+    minHeight: 100,
+  },
+  incomeButton: {
+    backgroundColor: '#27ae60',
+  },
+  expenseButton: {
+    backgroundColor: '#e74c3c',
+  },
+  actionButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 8,
+  },
+  // Filter
+  filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#d5f4e6',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+  },
+  filterButtonText: {
+    fontSize: 12,
+    color: '#00b894',
+    fontWeight: '600',
+    maxWidth: 120,
+  },
+  monthFilterContainer: {
+    paddingHorizontal: 15,
+    marginBottom: 10,
+  },
+  monthChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#f8f9fa',
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#dfe6e9',
+  },
+  monthChipActive: {
+    backgroundColor: '#00b894',
+    borderColor: '#00b894',
+  },
+  monthChipText: {
+    fontSize: 14,
+    color: '#636e72',
+    fontWeight: '600',
+  },
+  monthChipTextActive: {
+    color: '#fff',
+  },
+  // Add Transaction Modal
+  inputContainer: {
+    marginBottom: 5,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2d3436',
+    marginBottom: 8,
+  },
+  textInput: {
+    backgroundColor: '#f8f9fa',
+    borderWidth: 1,
+    borderColor: '#dfe6e9',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: '#2d3436',
+  },
+  inputError: {
+    borderColor: '#e74c3c',
+    borderWidth: 1.5,
+  },
+  errorTextContainer: {
+    minHeight: 20,
+    marginBottom: 10,
+  },
+  errorText: {
+    color: '#e74c3c',
+    fontSize: 12,
+    marginTop: 5,
+    marginLeft: 5,
+  },
+  buttonContainer: {
+    marginTop: 10,
+    flexDirection: 'row',
+    gap: 12,
+  },
+  saveButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 12,
+    backgroundColor: '#f8f9fa',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#dfe6e9',
+  },
+  cancelButtonText: {
+    color: '#636e72',
+    fontSize: 16,
+    fontWeight: '600',
   },
   decorativeElements: {
     position: 'absolute',

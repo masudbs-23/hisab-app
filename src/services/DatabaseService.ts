@@ -30,10 +30,30 @@ const createTables = async () => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
+        name TEXT,
+        phone TEXT,
+        profile_image TEXT,
         is_verified INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )`,
     );
+    
+    // Check if columns exist, if not add them (for existing databases)
+    try {
+      await db.executeSql('ALTER TABLE users ADD COLUMN name TEXT');
+    } catch (e) {
+      // Column already exists
+    }
+    try {
+      await db.executeSql('ALTER TABLE users ADD COLUMN phone TEXT');
+    } catch (e) {
+      // Column already exists
+    }
+    try {
+      await db.executeSql('ALTER TABLE users ADD COLUMN profile_image TEXT');
+    } catch (e) {
+      // Column already exists
+    }
     
     // Transactions table
     await db.executeSql(
@@ -135,6 +155,9 @@ export const loginUser = async (email: string, password: string) => {
       user: {
         id: user.id,
         email: user.email,
+        name: user.name,
+        phone: user.phone,
+        profileImage: user.profile_image,
       },
     };
   } catch (error: any) {
@@ -252,6 +275,59 @@ export const getCurrentBalance = async (userId: number) => {
   } catch (error) {
     console.error('Error calculating balance:', error);
     return {totalIncome: 0, totalExpense: 0, balance: 0};
+  }
+};
+
+export const getUserProfile = async (userId: number) => {
+  try {
+    const result = await db.executeSql(
+      'SELECT id, email, name, phone, profile_image FROM users WHERE id = ?',
+      [userId],
+    );
+    
+    if (result[0].rows.length === 0) {
+      throw new Error('User not found');
+    }
+    
+    const user = result[0].rows.item(0);
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      phone: user.phone,
+      profileImage: user.profile_image,
+    };
+  } catch (error) {
+    console.error('Error getting user profile:', error);
+    throw error;
+  }
+};
+
+export const updateUserProfile = async (
+  userId: number,
+  name: string,
+  phone: string,
+  profileImage?: string,
+) => {
+  try {
+    let query = 'UPDATE users SET name = ?, phone = ?';
+    let params: any[] = [name, phone];
+    
+    if (profileImage !== undefined) {
+      query += ', profile_image = ?';
+      params.push(profileImage);
+    }
+    
+    query += ' WHERE id = ?';
+    params.push(userId);
+    
+    await db.executeSql(query, params);
+    
+    console.log('User profile updated successfully');
+    return {success: true};
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    throw error;
   }
 };
 

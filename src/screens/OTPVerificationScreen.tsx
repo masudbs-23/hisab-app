@@ -149,6 +149,7 @@ const OTPVerificationScreen = ({navigation, route}: any) => {
                 <Text style={styles.logoIcon}>৳</Text>
               </View>
             </View>
+            <Text style={styles.logoSubtext}>Hisab</Text>
           </View>
 
           <Text style={styles.title}>Enter Verification Code</Text>
@@ -339,6 +340,13 @@ const styles = StyleSheet.create({
     textShadowOffset: {width: 1, height: 1},
     textShadowRadius: 3,
   },
+  logoSubtext: {
+    fontSize: 32,
+    color: '#00b894',
+    fontWeight: 'bold',
+    letterSpacing: 1,
+    marginTop: 10,
+  },
   title: {
     fontSize: 24,
     fontWeight: '700',
@@ -379,16 +387,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 40,
     width: '100%',
-    paddingHorizontal: 10,
+    maxWidth: 280,
+    paddingHorizontal: 0,
   },
   otpInput: {
-    width: 50,
-    height: 60,
+    width: 60,
+    height: 65,
     borderWidth: 2,
     borderColor: '#e2e8f0',
     borderRadius: 12,
-    fontSize: 24,
-    fontWeight: '600',
+    fontSize: 26,
+    fontWeight: '700',
     color: '#1a202c',
     backgroundColor: '#fff',
   },

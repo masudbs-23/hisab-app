@@ -17,12 +17,10 @@ const {width, height} = Dimensions.get('window');
 const SignupScreen = ({navigation}: any) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
-    confirmPassword?: string;
     general?: string;
   }>({});
 
@@ -39,15 +37,8 @@ const SignupScreen = ({navigation}: any) => {
     // Password validation
     if (!password.trim()) {
       newErrors.password = 'Password is required';
-    } else if (password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-
-    // Confirm Password validation
-    if (!confirmPassword.trim()) {
-      newErrors.confirmPassword = 'Please confirm your password';
-    } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
     }
 
     setErrors(newErrors);
@@ -145,15 +136,6 @@ const SignupScreen = ({navigation}: any) => {
             error={errors.password}
           />
 
-          <Input
-            label="Confirm Password"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            placeholder="Confirm your password"
-            secureTextEntry
-            error={errors.confirmPassword}
-          />
-
           <Button
             title="Create Account"
             onPress={handleRegister}
@@ -241,9 +223,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   logoSubtext: {
-    fontSize: 13,
+    fontSize: 32,
     color: '#00b894',
-    fontWeight: '600',
+    fontWeight: 'bold',
+    letterSpacing: 1,
   },
   formContainer: {
     width: '100%',

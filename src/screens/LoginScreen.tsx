@@ -100,7 +100,7 @@ const LoginScreen = ({navigation}: any) => {
 
       {/* Login Form */}
       <View style={styles.formContainer}>
-        <Text style={styles.title}>Login</Text>
+        <Text style={styles.title}>Login to your account</Text>
 
         {errors.general && (
           <View style={styles.errorContainer}>
@@ -214,14 +214,14 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   logoSubtext: {
-    fontSize: 14,
+    fontSize: 32,
     color: '#00b894',
-    fontWeight: '600',
+    fontWeight: 'bold',
+    letterSpacing: 1,
   },
   formContainer: {
     width: '100%',
     maxWidth: 350,
-    padding: 25,
     zIndex: 10,
   },
   title: {
