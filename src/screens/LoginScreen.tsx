@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
-  Alert,
 } from 'react-native';
 import Input from '../components/Input';
 import Button from '../components/Button';
@@ -61,21 +60,12 @@ const LoginScreen = ({navigation}: any) => {
       // Save user to context
       await login(result.user);
       
-      // Request SMS permission and sync
+      // Request SMS permission and sync (silently without alerts)
       const hasPermission = await requestSMSPermission();
       if (hasPermission) {
-        const syncResult: any = await readAndParseSMS(result.user.id);
-        if (syncResult?.success && syncResult?.count > 0) {
-          Alert.alert(
-            'Success',
-            `Login successful! ${syncResult.count} transactions synced from SMS.`,
-          );
-        } else {
-          Alert.alert('Success', 'Login successful!');
-        }
-      } else {
-        Alert.alert('Success', 'Login successful!');
+        await readAndParseSMS(result.user.id);
       }
+      
       // Navigation will be handled automatically by auth state change
     } catch (error: any) {
       setErrors({

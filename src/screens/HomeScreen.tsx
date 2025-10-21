@@ -731,21 +731,21 @@ const HomeScreen = ({navigation}: any) => {
           <TouchableOpacity
             style={[styles.actionButton, styles.incomeButton]}
             onPress={() => openAddModal('income')}>
-            <Icon name="add-circle" size={24} color="#fff" />
+            <Icon name="add-circle" size={20} color="#fff" />
             <Text style={styles.actionButtonText}>Add Income</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.actionButton, styles.expenseButton]}
             onPress={() => openAddModal('expense')}>
-            <Icon name="remove-circle" size={24} color="#fff" />
+            <Icon name="remove-circle" size={20} color="#fff" />
             <Text style={styles.actionButtonText}>Add Expense</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.actionButton, styles.statisticsButton]}
             onPress={() => navigation.navigate('Statistics')}>
-            <Icon name="stats-chart" size={24} color="#fff" />
+            <Icon name="stats-chart" size={20} color="#fff" />
             <Text style={styles.actionButtonText}>Statistics</Text>
           </TouchableOpacity>
         </View>
@@ -1172,12 +1172,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginBottom: 20,
     gap: 10,
-    flexWrap: 'wrap',
   },
   actionButton: {
     flex: 1,
-    minWidth: '30%',
-    padding: 16,
+    padding: 12,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1186,7 +1184,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 6,
-    minHeight: 100,
+    minHeight: 70,
   },
   incomeButton: {
     backgroundColor: '#27ae60',
@@ -1199,9 +1197,9 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
-    marginTop: 8,
+    marginTop: 6,
   },
   // Filter
   filterButton: {

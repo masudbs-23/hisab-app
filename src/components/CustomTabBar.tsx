@@ -11,6 +11,15 @@ const CustomTabBar = ({state, descriptors, navigation}: any) => {
     Profile: 'account',
   };
 
+  // Check if tab bar should be hidden
+  const focusedRoute = state.routes[state.index];
+  const focusedDescriptor = descriptors[focusedRoute.key];
+  const tabBarStyle = focusedDescriptor?.options?.tabBarStyle;
+  
+  if (tabBarStyle?.display === 'none') {
+    return null;
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.tabBar}>
@@ -74,8 +83,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 15,
-    paddingHorizontal: 10,
-    justifyContent: 'space-around',
+    paddingHorizontal: 20,
+    justifyContent: 'space-evenly',
     alignItems: 'center',
   },
   tab: {

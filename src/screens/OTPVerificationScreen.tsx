@@ -22,6 +22,10 @@ const OTPVerificationScreen = ({navigation, route}: any) => {
   const [errors, setErrors] = useState<{otp?: string; general?: string}>({});
   const [loading, setLoading] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
+  const [verificationMessage, setVerificationMessage] = useState<{
+    type: 'success' | 'error' | null;
+    text: string;
+  }>({type: null, text: ''});
 
   const inputRefs = useRef<any>([]);
   const shakeAnimation = useRef(new Animated.Value(0)).current;
@@ -88,24 +92,25 @@ const OTPVerificationScreen = ({navigation, route}: any) => {
       // Verify OTP (fixed 1234)
       await verifyOTP(email, otpString);
       
-      Alert.alert(
-        'Verification Successful',
-        'Your account has been verified. Please login.',
-        [
-          {
-            text: 'OK',
-            onPress: () => navigation.navigate('Login', {email}),
-          },
-        ],
-      );
+      // Show success message
+      setVerificationMessage({
+        type: 'success',
+        text: 'Verification Successful! Redirecting to login...',
+      });
+      
+      // Wait 1 second then navigate to login
+      setTimeout(() => {
+        navigation.navigate('Login', {email});
+      }, 1000);
     } catch (error: any) {
-      setErrors({
-        general: error.message || 'Invalid OTP. Please use 1234.',
+      // Show error message
+      setVerificationMessage({
+        type: 'error',
+        text: error.message || 'Invalid OTP. Please use 1234.',
       });
       shakeInputs();
       setOtp(['', '', '', '']);
       inputRefs.current[0]?.focus();
-    } finally {
       setLoading(false);
     }
   };
@@ -210,6 +215,26 @@ const OTPVerificationScreen = ({navigation, route}: any) => {
             loading={loading}
             disabled={!isOtpComplete}
           />
+
+          {/* Verification Message */}
+          {verificationMessage.type && (
+            <View style={[
+              styles.messageContainer,
+              verificationMessage.type === 'success' ? styles.successMessage : styles.errorMessage
+            ]}>
+              <Icon 
+                name={verificationMessage.type === 'success' ? 'check-circle' : 'error'} 
+                size={20} 
+                color={verificationMessage.type === 'success' ? '#00b894' : '#e74c3c'} 
+              />
+              <Text style={[
+                styles.messageText,
+                verificationMessage.type === 'success' ? styles.successText : styles.messageErrorText
+              ]}>
+                {verificationMessage.text}
+              </Text>
+            </View>
+          )}
 
           {/* Resend OTP */}
           <View style={styles.resendContainer}>
@@ -426,6 +451,35 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#00b894',
     fontWeight: '600',
+  },
+  messageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    borderRadius: 12,
+    marginTop: 20,
+    gap: 10,
+  },
+  successMessage: {
+    backgroundColor: '#d5f4e6',
+    borderWidth: 1,
+    borderColor: '#00b894',
+  },
+  errorMessage: {
+    backgroundColor: '#ffe5e5',
+    borderWidth: 1,
+    borderColor: '#e74c3c',
+  },
+  messageText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  successText: {
+    color: '#00b894',
+  },
+  messageErrorText: {
+    color: '#e74c3c',
   },
 });
 

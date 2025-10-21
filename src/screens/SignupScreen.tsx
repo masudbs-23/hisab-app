@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
-  Alert,
 } from 'react-native';
 import Input from '../components/Input';
 import Button from '../components/Button';
@@ -56,16 +55,8 @@ const SignupScreen = ({navigation}: any) => {
     try {
       await registerUser(email.trim(), password);
       
-      Alert.alert(
-        'Registration Successful',
-        'Please check your email for OTP. Use 1234 to verify.',
-        [
-          {
-            text: 'OK',
-            onPress: () => navigation.navigate('OTPVerification', {email: email.trim()}),
-          },
-        ],
-      );
+      // Navigate directly to OTP screen without alert
+      navigation.navigate('OTPVerification', {email: email.trim()});
     } catch (error: any) {
       if (error.message === 'User already exists') {
         setErrors({

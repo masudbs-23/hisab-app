@@ -21,7 +21,7 @@ interface Notification {
   iconBg: string;
 }
 
-const NotificationScreen = () => {
+const NotificationScreen = ({navigation}: any) => {
   const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: '1',
@@ -137,6 +137,11 @@ const NotificationScreen = () => {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}>
+          <Icon name="arrow-back" size={24} color="#2d3436" />
+        </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>Notifications</Text>
           {unreadCount > 0 && (
@@ -244,10 +249,17 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    // paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 15,
     zIndex: 10,
+    gap: 15,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitleContainer: {
     flex: 1,

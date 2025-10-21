@@ -5,17 +5,23 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
+  TouchableOpacity,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const {height} = Dimensions.get('window');
 
-const PrivacyPolicyScreen = () => {
+const PrivacyPolicyScreen = ({navigation}: any) => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}>
+          <Icon name="arrow-back" size={24} color="#2d3436" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Privacy Policy</Text>
       </View>
 
@@ -177,10 +183,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fffe',
   },
   header: {
-    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    // paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 15,
     zIndex: 10,
+    gap: 15,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 24,
