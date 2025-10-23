@@ -55,11 +55,27 @@ const createTables = async () => {
       // Column already exists
     }
     
+    // Cards table
+    await db.executeSql(
+      `CREATE TABLE IF NOT EXISTS cards (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        card_type TEXT NOT NULL,
+        card_name TEXT NOT NULL,
+        balance REAL DEFAULT 0,
+        card_number TEXT,
+        color TEXT DEFAULT '#00b894',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )`,
+    );
+    
     // Transactions table
     await db.executeSql(
       `CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
+        card_id INTEGER,
         type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
         amount REAL NOT NULL,
         description TEXT NOT NULL,
@@ -76,9 +92,17 @@ const createTables = async () => {
         account_no TEXT,
         sms_body TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id)
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        FOREIGN KEY (card_id) REFERENCES cards(id)
       )`,
     );
+    
+    // Try to add card_id column if it doesn't exist (for existing databases)
+    try {
+      await db.executeSql('ALTER TABLE transactions ADD COLUMN card_id INTEGER');
+    } catch (e) {
+      // Column already exists
+    }
     
     console.log('Tables created successfully');
   } catch (error) {
@@ -183,11 +207,12 @@ export const addTransaction = async (userId: number, transaction: any) => {
   try {
     await db.executeSql(
       `INSERT INTO transactions (
-        user_id, type, amount, description, date, category, balance,
+        user_id, card_id, type, amount, description, date, category, balance,
         bank, card_no, trx_id, fee, method, status, recipient, account_no, sms_body
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         userId,
+        transaction.cardId || null,
         transaction.type,
         transaction.amount,
         transaction.description,
@@ -328,6 +353,94 @@ export const updateUserProfile = async (
   } catch (error) {
     console.error('Error updating user profile:', error);
     throw error;
+  }
+};
+
+// Card Management Functions
+export const addCard = async (userId: number, card: any) => {
+  try {
+    await db.executeSql(
+      `INSERT INTO cards (user_id, card_type, card_name, balance, card_number, color)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        userId,
+        card.cardType,
+        card.cardName,
+        card.balance || 0,
+        card.cardNumber || '',
+        card.color || '#00b894',
+      ],
+    );
+    console.log('Card added successfully');
+  } catch (error) {
+    console.error('Error adding card:', error);
+    throw error;
+  }
+};
+
+export const getUserCards = async (userId: number) => {
+  try {
+    const result = await db.executeSql(
+      'SELECT * FROM cards WHERE user_id = ? ORDER BY created_at DESC',
+      [userId],
+    );
+    
+    const cards = [];
+    for (let i = 0; i < result[0].rows.length; i++) {
+      const row = result[0].rows.item(i);
+      cards.push({
+        id: row.id,
+        cardType: row.card_type,
+        cardName: row.card_name,
+        balance: row.balance,
+        cardNumber: row.card_number,
+        color: row.color,
+      });
+    }
+    return cards;
+  } catch (error) {
+    console.error('Error getting cards:', error);
+    return [];
+  }
+};
+
+export const updateCardBalance = async (cardId: number, newBalance: number) => {
+  try {
+    await db.executeSql(
+      'UPDATE cards SET balance = ? WHERE id = ?',
+      [newBalance, cardId],
+    );
+    console.log('Card balance updated successfully');
+  } catch (error) {
+    console.error('Error updating card balance:', error);
+    throw error;
+  }
+};
+
+export const deleteCard = async (cardId: number) => {
+  try {
+    await db.executeSql('DELETE FROM cards WHERE id = ?', [cardId]);
+    console.log('Card deleted successfully');
+  } catch (error) {
+    console.error('Error deleting card:', error);
+    throw error;
+  }
+};
+
+export const getCardBalance = async (cardId: number) => {
+  try {
+    const result = await db.executeSql(
+      'SELECT balance FROM cards WHERE id = ?',
+      [cardId],
+    );
+    
+    if (result[0].rows.length > 0) {
+      return result[0].rows.item(0).balance;
+    }
+    return 0;
+  } catch (error) {
+    console.error('Error getting card balance:', error);
+    return 0;
   }
 };
 

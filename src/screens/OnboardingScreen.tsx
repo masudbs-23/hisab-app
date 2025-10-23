@@ -4,16 +4,18 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 
 const {width, height} = Dimensions.get('window');
 
-const OnboardingScreen = ({navigation}: any) => {
+const OnboardingScreen = ({navigation, onComplete}: any) => {
   const setOnboardingComplete = () => {
-    navigation.navigate('Login');
+    if (onComplete) {
+      onComplete();
+    }
   };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <StatusBar
         barStyle="dark-content"
-        backgroundColor="#f8fffe"
+        backgroundColor="#e8f8f5"
         translucent={false}
       />
       <View style={styles.container}>
@@ -121,7 +123,7 @@ const styles = StyleSheet.create({
     elevation: 15,
   },
   logoBengaliTitle: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#fff',
     fontWeight: 'bold',
     marginTop: 5,
@@ -130,7 +132,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
   },
   logoIcon: {
-    fontSize: 56,
+    fontSize: 48,
     color: '#fff',
     fontWeight: 'bold',
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
@@ -138,7 +140,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,
   },
   logoSubtext: {
-    fontSize: 24,
+    fontSize: 20,
     color: '#00b894',
     fontWeight: '600',
   },
@@ -148,18 +150,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   title: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 12,
     color: '#2d3436',
     textAlign: 'center',
-    lineHeight: 38,
+    lineHeight: 28,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#636e72',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 22,
     maxWidth: width * 0.85,
   },
   featuresContainer: {
@@ -195,17 +197,17 @@ const styles = StyleSheet.create({
     fontSize: 28,
   },
   featureTitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#2d3436',
     textAlign: 'center',
     fontWeight: 'bold',
     marginBottom: 4,
   },
   featureDescription: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#636e72',
     textAlign: 'center',
-    lineHeight: 16,
+    lineHeight: 14,
   },
   buttonContainer: {
     width: '100%',
@@ -234,15 +236,15 @@ const styles = StyleSheet.create({
   },
   getStartedButtonText: {
     color: '#fff',
-    fontSize: 20,
+    fontSize: 17,
     fontWeight: 'bold',
     marginBottom: 2,
   },
   termsText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#b2bec3',
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 16,
     paddingHorizontal: 20,
   },
   decorativeElements: {

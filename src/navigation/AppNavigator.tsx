@@ -1,18 +1,16 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {ActivityIndicator, View} from 'react-native';
 import OnboardingScreen from '../screens/OnboardingScreen';
-import LoginScreen from '../screens/LoginScreen';
-import SignupScreen from '../screens/SignupScreen';
-import OTPVerificationScreen from '../screens/OTPVerificationScreen';
 import BottomTabNavigator from './BottomTabNavigator';
 import {useAuth} from '../context/AuthContext';
 
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
-  const {isLoggedIn, isLoading} = useAuth();
+  const {isLoading} = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(true);
 
   if (isLoading) {
     return (
@@ -28,15 +26,12 @@ const AppNavigator = () => {
         screenOptions={{
           headerShown: false,
         }}>
-        {isLoggedIn ? (
-          <Stack.Screen name="MainApp" component={BottomTabNavigator} />
+        {showOnboarding ? (
+          <Stack.Screen name="Onboarding">
+            {(props) => <OnboardingScreen {...props} onComplete={() => setShowOnboarding(false)} />}
+          </Stack.Screen>
         ) : (
-          <>
-            <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="Signup" component={SignupScreen} />
-            <Stack.Screen name="OTPVerification" component={OTPVerificationScreen} />
-          </>
+          <Stack.Screen name="MainApp" component={BottomTabNavigator} />
         )}
       </Stack.Navigator>
     </NavigationContainer>

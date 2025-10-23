@@ -13,6 +13,7 @@ import {
   Alert,
   RefreshControl,
   TextInput,
+  StatusBar,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -21,6 +22,8 @@ import {
   getUserTransactions,
   getCurrentBalance,
   addTransaction,
+  getUserCards,
+  updateCardBalance,
 } from '../services/DatabaseService';
 import {readAndParseSMS, requestSMSPermission, testSMSParsing} from '../services/SMSService';
 import Button from '../components/Button';
@@ -60,6 +63,7 @@ const HomeScreen = ({navigation}: any) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const slideAnim = useState(new Animated.Value(height))[0];
+  const [balanceVisible, setBalanceVisible] = useState(false);
   
   // Add Transaction Modal
   const [addModalVisible, setAddModalVisible] = useState(false);
@@ -68,8 +72,11 @@ const HomeScreen = ({navigation}: any) => {
   const [amount, setAmount] = useState('');
   const [titleError, setTitleError] = useState('');
   const [amountError, setAmountError] = useState('');
+  const [cardError, setCardError] = useState('');
   const addSlideAnim = useState(new Animated.Value(height))[0];
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [cards, setCards] = useState<any[]>([]);
+  const [selectedCard, setSelectedCard] = useState<any>(null);
   
   // Title suggestions
   const expenseSuggestions = ['Rent', 'Travel', 'Shopping', 'Food', 'Bills', 'Entertainment', 'Health', 'Education'];
@@ -81,8 +88,19 @@ const HomeScreen = ({navigation}: any) => {
 
   useEffect(() => {
     loadData();
+    loadCards();
     requestSMSAccess();
   }, []);
+
+  const loadCards = async () => {
+    if (!user) return;
+    try {
+      const userCards = await getUserCards(user.id);
+      setCards(userCards);
+    } catch (error) {
+      console.error('Error loading cards:', error);
+    }
+  };
 
   const requestSMSAccess = async () => {
     const hasPermission = await requestSMSPermission();
@@ -194,7 +212,9 @@ const HomeScreen = ({navigation}: any) => {
     setAmount('');
     setTitleError('');
     setAmountError('');
+    setCardError('');
     setShowSuggestions(false);
+    setSelectedCard(null);
     setAddModalVisible(true);
     Animated.timing(addSlideAnim, {
       toValue: 0,
@@ -222,7 +242,9 @@ const HomeScreen = ({navigation}: any) => {
       setAmount('');
       setTitleError('');
       setAmountError('');
+      setCardError('');
       setShowSuggestions(false);
+      setSelectedCard(null);
     });
   };
 
@@ -246,25 +268,45 @@ const HomeScreen = ({navigation}: any) => {
       setAmountError('');
     }
 
+    if (!selectedCard) {
+      setCardError('Please select a card');
+      isValid = false;
+    } else {
+      setCardError('');
+    }
+
     return isValid;
   };
 
   const handleSaveTransaction = async () => {
-    if (!validateInputs() || !user) return;
+    if (!validateInputs() || !user || !selectedCard) return;
 
     try {
+      const transactionAmount = parseFloat(amount);
+      
+      // Update card balance
+      let newBalance = selectedCard.balance;
+      if (transactionType === 'income') {
+        newBalance += transactionAmount;
+      } else {
+        newBalance -= transactionAmount;
+      }
+      
+      await updateCardBalance(selectedCard.id, newBalance);
+      
       const transaction = {
         type: transactionType,
-        amount: parseFloat(amount),
+        amount: transactionAmount,
         description: title,
         date: new Date().toISOString(),
         category: transactionType === 'income' ? 'Income' : 'Expense',
-        bank: 'Manual Entry',
+        bank: selectedCard.cardType,
+        cardId: selectedCard.id,
         method: 'Manual',
         status: 'Completed',
         trxId: `MANUAL-${Date.now()}`,
         fee: 0,
-        balance: 0,
+        balance: newBalance,
       };
 
       await addTransaction(user.id, transaction);
@@ -276,6 +318,7 @@ const HomeScreen = ({navigation}: any) => {
 
       closeAddModal();
       loadData();
+      loadCards();
     } catch (error: any) {
       console.error('Error saving transaction:', error);
       Alert.alert(
@@ -367,33 +410,24 @@ const HomeScreen = ({navigation}: any) => {
 
   const SummaryCard = () => (
     <View style={styles.summaryCard}>
-      <Text style={styles.summaryTitle}>Financial Summary</Text>
-
-      <View style={styles.summaryRow}>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Total Income</Text>
-          <Text style={[styles.summaryAmount, styles.incomeAmount]}>
-            +{formatCurrency(summary.totalIncome)}
-          </Text>
-        </View>
-
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Total Expense</Text>
-          <Text style={[styles.summaryAmount, styles.expenseAmount]}>
-            -{formatCurrency(summary.totalExpense)}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.balanceContainer}>
-        <Text style={styles.balanceLabel}>Net Balance</Text>
+      <Text style={styles.balanceTitle}>Balance</Text>
+      <View style={styles.balanceRow}>
         <Text
           style={[
             styles.balanceAmount,
             summary.balance >= 0 ? styles.incomeAmount : styles.expenseAmount,
           ]}>
-          {formatCurrency(Math.abs(summary.balance))}
+          {balanceVisible ? formatCurrency(Math.abs(summary.balance)) : '৳ •••••'}
         </Text>
+        <TouchableOpacity 
+          onPress={() => setBalanceVisible(!balanceVisible)}
+          style={styles.eyeButton}>
+          <Icon 
+            name={balanceVisible ? "eye-outline" : "eye-off-outline"} 
+            size={24} 
+            color="#636e72" 
+          />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -427,6 +461,59 @@ const HomeScreen = ({navigation}: any) => {
                 style={styles.modalBody} 
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled">
+                
+                {/* Card Selection */}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Select Card</Text>
+                  {cards.length === 0 ? (
+                    <View style={styles.noCardsContainer}>
+                      <Icon name="card-outline" size={40} color="#b2bec3" />
+                      <Text style={styles.noCardsText}>No cards available</Text>
+                      <Text style={styles.noCardsSubText}>Add a card from the Cards tab first</Text>
+                    </View>
+                  ) : (
+                    <ScrollView 
+                      horizontal 
+                      showsHorizontalScrollIndicator={false}
+                      style={styles.cardSelector}>
+                      {cards.map((card: any) => (
+                        <TouchableOpacity
+                          key={card.id}
+                          style={[
+                            styles.cardOption,
+                            {backgroundColor: card.color},
+                            selectedCard?.id === card.id && styles.cardOptionSelected,
+                          ]}
+                          onPress={() => {
+                            setSelectedCard(card);
+                            if (cardError) setCardError('');
+                          }}
+                          activeOpacity={0.8}>
+                          <View style={styles.cardOptionHeader}>
+                            <Icon name="hardware-chip-outline" size={28} color="rgba(255,255,255,0.6)" />
+                            {selectedCard?.id === card.id && (
+                              <View style={styles.selectedBadge}>
+                                <Icon name="checkmark-circle" size={24} color="#fff" />
+                              </View>
+                            )}
+                          </View>
+                          <Text style={styles.cardOptionType}>{card.cardType}</Text>
+                          <Text style={styles.cardOptionName}>{card.cardName}</Text>
+                          <View style={styles.cardOptionBalanceContainer}>
+                            <Text style={styles.cardOptionBalanceLabel}>Balance</Text>
+                            <Text style={styles.cardOptionBalance}>
+                              ৳{card.balance.toLocaleString('en-BD')}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  )}
+                  <View style={styles.errorTextContainer}>
+                    {cardError ? <Text style={styles.errorText}>{cardError}</Text> : null}
+                  </View>
+                </View>
+
                 <View style={styles.inputContainer}>
                   <Text style={styles.inputLabel}>Title</Text>
                   
@@ -693,28 +780,31 @@ const HomeScreen = ({navigation}: any) => {
 
   return (
     <SafeAreaView style={styles.screenContainer} edges={['top']}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#e8f8f5"
+        translucent={false}
+      />
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity style={styles.avatarContainer}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>
-                {user?.email?.charAt(0).toUpperCase() || 'U'}
+                {user?.name?.charAt(0).toUpperCase() || 'D'}
               </Text>
             </View>
           </TouchableOpacity>
           <View style={styles.headerTextContainer}>
-            <Text style={styles.greeting}>Welcome</Text>
             <Text style={styles.userName}>
-              {user?.email?.split('@')[0] || 'User'}
+              {user?.name || 'Demo User'}
             </Text>
           </View>
         </View>
 
         <TouchableOpacity 
-          style={styles.syncButton}
-          onPress={syncSMSTransactions}
-          onLongPress={handleTestParsing}>
-          <Icon name="sync-outline" size={24} color="#00b894" />
+          style={styles.notificationButton}
+          onPress={() => navigation.navigate('Notifications')}>
+          <Icon name="notifications-outline" size={28} color="#2d3436" />
         </TouchableOpacity>
       </View>
 
@@ -874,17 +964,12 @@ const styles = StyleSheet.create({
   headerTextContainer: {
     justifyContent: 'center',
   },
-  greeting: {
-    fontSize: 14,
-    color: '#636e72',
-    marginBottom: 2,
-  },
   userName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#2d3436',
   },
-  syncButton: {
+  notificationButton: {
     padding: 8,
   },
   content: {
@@ -894,63 +979,36 @@ const styles = StyleSheet.create({
   summaryCard: {
     backgroundColor: 'white',
     margin: 15,
-    padding: 20,
+    padding: 16,
     borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 8,
     borderWidth: 1,
-    borderColor: '#f1f1f1',
+    borderColor: '#fff',
   },
-  summaryTitle: {
-    fontSize: 20,
+  balanceTitle: {
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#2d3436',
-    marginBottom: 20,
-    textAlign: 'center',
+    marginBottom: 10,
   },
-  summaryRow: {
+  balanceRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  summaryItem: {
     alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  balanceAmount: {
+    fontSize: 22,
+    fontWeight: 'bold',
     flex: 1,
   },
-  summaryLabel: {
-    fontSize: 14,
-    color: '#636e72',
-    marginBottom: 8,
-    fontWeight: '600',
-  },
-  summaryAmount: {
-    fontSize: 18,
-    fontWeight: 'bold',
+  eyeButton: {
+    padding: 8,
+    marginLeft: 15,
   },
   incomeAmount: {
     color: '#27ae60',
   },
   expenseAmount: {
     color: '#e74c3c',
-  },
-  balanceContainer: {
-    alignItems: 'center',
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#ecf0f1',
-  },
-  balanceLabel: {
-    fontSize: 16,
-    color: '#636e72',
-    marginBottom: 8,
-    fontWeight: '600',
-  },
-  balanceAmount: {
-    fontSize: 24,
-    fontWeight: 'bold',
   },
   transactionsHeaderRow: {
     flexDirection: 'row',
@@ -961,13 +1019,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   transactionsTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#2d3436',
     marginBottom: 4,
   },
   transactionsCount: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#636e72',
     fontWeight: '500',
   },
@@ -1000,17 +1058,17 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   transactionDescription: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#2d3436',
     marginBottom: 4,
   },
   transactionDate: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#636e72',
   },
   amount: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
   },
   transactionDetails: {
@@ -1045,13 +1103,13 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '600',
     color: '#636e72',
     marginTop: 20,
   },
   emptySubText: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#b2bec3',
     marginTop: 8,
   },
@@ -1081,7 +1139,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ecf0f1',
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#2d3436',
   },
@@ -1104,13 +1162,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#fdeaea',
   },
   modalAmount: {
-    fontSize: 32,
+    fontSize: 26,
     fontWeight: 'bold',
     marginBottom: 8,
     color: '#2d3436',
   },
   modalDescription: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#2d3436',
     textAlign: 'center',
     marginBottom: 12,
@@ -1132,7 +1190,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#2d3436',
     marginBottom: 16,
@@ -1197,7 +1255,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: 'bold',
     marginTop: 6,
   },
@@ -1258,9 +1316,9 @@ const styles = StyleSheet.create({
     borderColor: '#dfe6e9',
     borderRadius: 12,
     paddingHorizontal: 15,
-    paddingVertical: 14,
+    paddingVertical: 12,
     paddingRight: 40,
-    fontSize: 16,
+    fontSize: 14,
     color: '#2d3436',
   },
   dropdownIcon: {
@@ -1331,7 +1389,7 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 'bold',
   },
   cancelButton: {
@@ -1346,8 +1404,98 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: '#636e72',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
+  },
+  // Card Selector
+  cardSelector: {
+    marginVertical: 10,
+  },
+  cardOption: {
+    width: 160,
+    padding: 16,
+    borderRadius: 16,
+    marginRight: 12,
+    minHeight: 180,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 6},
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 10,
+    position: 'relative',
+    justifyContent: 'space-between',
+  },
+  cardOptionSelected: {
+    borderWidth: 3,
+    borderColor: '#fff',
+    transform: [{scale: 1.03}],
+  },
+  cardOptionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  cardOptionType: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.95)',
+    fontWeight: 'bold',
+    marginBottom: 4,
+    letterSpacing: 0.5,
+  },
+  cardOptionName: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.9)',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 12,
+  },
+  cardOptionBalanceContainer: {
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.2)',
+    paddingTop: 10,
+  },
+  cardOptionBalanceLabel: {
+    fontSize: 9,
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginBottom: 4,
+    letterSpacing: 1,
+    fontWeight: '600',
+  },
+  cardOptionBalance: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+    letterSpacing: 0.5,
+  },
+  selectedBadge: {
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  noCardsContainer: {
+    alignItems: 'center',
+    paddingVertical: 30,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#dfe6e9',
+    borderStyle: 'dashed',
+  },
+  noCardsText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#636e72',
+    marginTop: 10,
+  },
+  noCardsSubText: {
+    fontSize: 12,
+    color: '#b2bec3',
+    marginTop: 5,
+    textAlign: 'center',
   },
   decorativeElements: {
     position: 'absolute',

@@ -35,11 +35,14 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
       // Initialize database
       await initDatabase();
 
-      // Check if user is logged in
-      const userData = await AsyncStorage.getItem('user');
-      if (userData) {
-        setUser(JSON.parse(userData));
-      }
+      // Set dummy user data
+      const dummyUser: User = {
+        id: 1,
+        email: 'demo@hisab.com',
+        name: 'Demo User',
+        phone: '+880 1234567890',
+      };
+      setUser(dummyUser);
     } catch (error) {
       console.error('Error initializing app:', error);
     } finally {

@@ -8,6 +8,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
 import NotificationScreen from '../screens/NotificationScreen';
 import StatisticsScreen from '../screens/StatisticsScreen';
+import CardsScreen from '../screens/CardsScreen';
 import CustomTabBar from '../components/CustomTabBar';
 
 const Tab = createBottomTabNavigator();
@@ -65,6 +66,7 @@ const BottomTabNavigator = () => {
         })}
       />
       <Tab.Screen name="Transaction" component={TransactionScreen} />
+      <Tab.Screen name="Cards" component={CardsScreen} />
       <Tab.Screen 
         name="Profile" 
         component={ProfileStack}

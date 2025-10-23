@@ -6,6 +6,7 @@ import {
   ScrollView,
   Dimensions,
   TouchableOpacity,
+  StatusBar,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -15,6 +16,11 @@ const {height} = Dimensions.get('window');
 const PrivacyPolicyScreen = ({navigation}: any) => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#e8f8f5"
+        translucent={false}
+      />
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -198,7 +204,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#2d3436',
   },
@@ -215,7 +221,7 @@ const styles = StyleSheet.create({
     borderColor: '#e9ecef',
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#2d3436',
     marginBottom: 15,
@@ -228,21 +234,21 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   permissionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#2d3436',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#4A90E2',
     marginTop: 10,
     marginBottom: 5,
   },
   paragraph: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#636e72',
-    lineHeight: 22,
+    lineHeight: 20,
     marginBottom: 10,
   },
   bold: {
