@@ -28,6 +28,7 @@ import {
 import {readAndParseSMS, requestSMSPermission, testSMSParsing} from '../services/SMSService';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import LanguageSwitch from '../components/LanguageSwitch';
 
 const {width, height} = Dimensions.get('window');
 
@@ -77,6 +78,9 @@ const HomeScreen = ({navigation}: any) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [cards, setCards] = useState<any[]>([]);
   const [selectedCard, setSelectedCard] = useState<any>(null);
+  
+  // Language state
+  const [language, setLanguage] = useState<'en' | 'bn'>('en');
   
   // Title suggestions
   const expenseSuggestions = ['Rent', 'Travel', 'Shopping', 'Food', 'Bills', 'Entertainment', 'Health', 'Education'];
@@ -801,11 +805,12 @@ const HomeScreen = ({navigation}: any) => {
           </View>
         </View>
 
-        <TouchableOpacity 
-          style={styles.notificationButton}
-          onPress={() => navigation.navigate('Notifications')}>
-          <Icon name="notifications-outline" size={28} color="#2d3436" />
-        </TouchableOpacity>
+        <View style={styles.headerRight}>
+          <LanguageSwitch 
+            value={language} 
+            onValueChange={setLanguage}
+          />
+        </View>
       </View>
 
       <ScrollView
@@ -924,7 +929,7 @@ const HomeScreen = ({navigation}: any) => {
 const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
-    backgroundColor: '#f8fffe',
+    backgroundColor: '#FFFFFF',
     paddingBottom: 80,
   },
   header: {
@@ -968,6 +973,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#2d3436',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   notificationButton: {
     padding: 8,

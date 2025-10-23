@@ -399,7 +399,7 @@ const TransactionScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fffe',
+    backgroundColor: '#FFFFFF',
     paddingBottom: 80,
   },
   header: {

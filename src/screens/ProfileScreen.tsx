@@ -346,7 +346,7 @@ const ProfileScreen = ({navigation}: any) => {
   );
 
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: '#f8fffe'}} edges={['top']}>
+    <SafeAreaView style={{flex: 1, backgroundColor: '#FFFFFF'}} edges={['top']}>
       {/* Header Bar with Title and Logout */}
       <View style={styles.headerBar}>
         <Text style={styles.headerTitle}>Profile</Text>
@@ -413,7 +413,7 @@ const ProfileScreen = ({navigation}: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fffe',
+    backgroundColor: '#FFFFFF',
   },
   headerBar: {
     flexDirection: 'row',

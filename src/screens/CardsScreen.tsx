@@ -385,7 +385,7 @@ const CardsScreen = ({navigation}: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fffe',
+    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
