@@ -12,6 +12,7 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useAuth} from '../context/AuthContext';
+import {useLanguage} from '../context/LanguageContext';
 import {
   addTransaction,
   getUserCards,
@@ -20,6 +21,7 @@ import {
 
 const AddTransactionScreen = ({navigation, route}: any) => {
   const {user} = useAuth();
+  const {t} = useLanguage();
   const transactionType = route.params?.type || 'income'; // 'income' or 'expense'
   
   const [title, setTitle] = useState('');
@@ -33,8 +35,25 @@ const AddTransactionScreen = ({navigation, route}: any) => {
   const [selectedCard, setSelectedCard] = useState<any>(null);
 
   // Title suggestions
-  const expenseSuggestions = ['Rent', 'Travel', 'Shopping', 'Food', 'Bills', 'Entertainment', 'Health', 'Education'];
-  const incomeSuggestions = ['Salary', 'Part-time', 'Freelance', 'Business', 'Investment', 'Gift', 'Bonus'];
+  const expenseSuggestions = [
+    t('suggestions.rent'),
+    t('suggestions.travel'),
+    t('suggestions.shopping'),
+    t('suggestions.food'),
+    t('suggestions.bills'),
+    t('suggestions.entertainment'),
+    t('suggestions.health'),
+    t('suggestions.education'),
+  ];
+  const incomeSuggestions = [
+    t('suggestions.salary'),
+    t('suggestions.partTime'),
+    t('suggestions.freelance'),
+    t('suggestions.business'),
+    t('suggestions.investment'),
+    t('suggestions.gift'),
+    t('suggestions.bonus'),
+  ];
 
   useEffect(() => {
     loadCards();
@@ -62,24 +81,24 @@ const AddTransactionScreen = ({navigation, route}: any) => {
     let isValid = true;
     
     if (!title.trim()) {
-      setTitleError('Title is required');
+      setTitleError(t('addTransaction.titleRequired'));
       isValid = false;
     } else {
       setTitleError('');
     }
 
     if (!amount.trim()) {
-      setAmountError('Amount is required');
+      setAmountError(t('addTransaction.amountRequired'));
       isValid = false;
     } else if (isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
-      setAmountError('Please enter a valid amount');
+      setAmountError(t('addTransaction.validAmount'));
       isValid = false;
     } else {
       setAmountError('');
     }
 
     if (!selectedCard) {
-      setCardError('Please select a card');
+      setCardError(t('addTransaction.selectCardRequired'));
       isValid = false;
     } else {
       setCardError('');
@@ -122,8 +141,8 @@ const AddTransactionScreen = ({navigation, route}: any) => {
       await addTransaction(user.id, transaction);
       
       Alert.alert(
-        'Success',
-        `${transactionType === 'income' ? 'Income' : 'Expense'} added successfully!`,
+        t('common.success'),
+        transactionType === 'income' ? t('addTransaction.incomeSuccess') : t('addTransaction.expenseSuccess'),
         [
           {
             text: 'OK',
@@ -134,8 +153,8 @@ const AddTransactionScreen = ({navigation, route}: any) => {
     } catch (error: any) {
       console.error('Error saving transaction:', error);
       Alert.alert(
-        'Error',
-        'Failed to add transaction. Please try again.',
+        t('common.error'),
+        t('addTransaction.failed'),
       );
     }
   };
@@ -156,7 +175,7 @@ const AddTransactionScreen = ({navigation, route}: any) => {
           <Icon name="arrow-back" size={24} color="#2d3436" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
-          Add {transactionType === 'income' ? 'Income' : 'Expense'}
+          {transactionType === 'income' ? t('addTransaction.addIncome') : t('addTransaction.addExpense')}
         </Text>
         <View style={styles.placeholder} />
       </View>
@@ -168,7 +187,7 @@ const AddTransactionScreen = ({navigation, route}: any) => {
         
         {/* Card Selection */}
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Select Card</Text>
+          <Text style={styles.inputLabel}>{t('addTransaction.selectCard')}</Text>
           
           <View style={styles.cardSelectWrapper}>
             <TouchableOpacity
@@ -186,8 +205,8 @@ const AddTransactionScreen = ({navigation, route}: any) => {
                   {selectedCard 
                     ? `${selectedCard.cardType} - ${selectedCard.cardName}` 
                     : cards.length === 0 
-                      ? 'No cards available' 
-                      : 'Select a card'}
+                      ? t('addTransaction.noCards')
+                      : t('addTransaction.selectCard')}
                 </Text>
               </View>
               {cards.length > 0 && (
@@ -226,7 +245,7 @@ const AddTransactionScreen = ({navigation, route}: any) => {
                           <Text style={styles.cardDropdownItemName}>{card.cardName}</Text>
                         </View>
                         <View style={styles.cardDropdownItemBalance}>
-                          <Text style={styles.cardDropdownItemBalanceLabel}>Balance</Text>
+                          <Text style={styles.cardDropdownItemBalanceLabel}>{t('home.balance')}</Text>
                           <Text style={styles.cardDropdownItemBalanceValue}>
                             ৳{card.balance.toLocaleString('en-BD')}
                           </Text>
@@ -248,7 +267,7 @@ const AddTransactionScreen = ({navigation, route}: any) => {
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Title</Text>
+          <Text style={styles.inputLabel}>{t('addTransaction.title')}</Text>
           
           <View style={styles.titleInputWrapper}>
             <TouchableOpacity
@@ -259,7 +278,7 @@ const AddTransactionScreen = ({navigation, route}: any) => {
               }}>
               <TextInput
                 style={[styles.textInput, titleError && styles.inputError]}
-                placeholder="Select or enter title"
+                placeholder={t('addTransaction.selectOrEnter')}
                 placeholderTextColor="#b2bec3"
                 value={title}
                 onChangeText={(text) => {
@@ -317,10 +336,10 @@ const AddTransactionScreen = ({navigation, route}: any) => {
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Amount (৳)</Text>
+          <Text style={styles.inputLabel}>{t('addTransaction.amount')} (৳)</Text>
           <TextInput
             style={[styles.textInput, amountError && styles.inputError]}
-            placeholder="Enter amount"
+            placeholder={t('addTransaction.enterAmount')}
             placeholderTextColor="#b2bec3"
             value={amount}
             onChangeText={(text) => {
@@ -347,14 +366,14 @@ const AddTransactionScreen = ({navigation, route}: any) => {
             style={styles.cancelButton}
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}>
-            <Text style={styles.cancelButtonText}>Cancel</Text>
+            <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.saveButton, transactionType === 'income' ? styles.incomeButton : styles.expenseButton]}
             onPress={handleSaveTransaction}
             activeOpacity={0.8}>
-            <Text style={styles.saveButtonText}>Save</Text>
+            <Text style={styles.saveButtonText}>{t('common.save')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

@@ -8,6 +8,7 @@ import React from 'react';
 import {StatusBar, Text, TextInput, Platform} from 'react-native';
 import 'react-native-gesture-handler';
 import {AuthProvider} from './src/context/AuthContext';
+import {LanguageProvider} from './src/context/LanguageContext';
 import AppNavigator from './src/navigation/AppNavigator';
 
 // Set default font family for all Text and TextInput components
@@ -36,8 +37,10 @@ TextInput.defaultProps.style = {fontFamily: defaultFontFamily};
 function App() {
   return (
     <AuthProvider>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      <AppNavigator />
+      <LanguageProvider>
+        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <AppNavigator />
+      </LanguageProvider>
     </AuthProvider>
   );
 }

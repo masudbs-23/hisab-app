@@ -7,32 +7,26 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
+import {useLanguage} from '../context/LanguageContext';
 
 const {width} = Dimensions.get('window');
 
-interface LanguageSwitchProps {
-  value: 'en' | 'bn';
-  onValueChange: (value: 'en' | 'bn') => void;
-}
-
-const LanguageSwitch: React.FC<LanguageSwitchProps> = ({
-  value,
-  onValueChange,
-}) => {
-  const animatedValue = useRef(new Animated.Value(value === 'en' ? 0 : 1)).current;
+const LanguageSwitch: React.FC = () => {
+  const {language, setLanguage} = useLanguage();
+  const animatedValue = useRef(new Animated.Value(language === 'en' ? 0 : 1)).current;
 
   useEffect(() => {
     Animated.spring(animatedValue, {
-      toValue: value === 'en' ? 0 : 1,
+      toValue: language === 'en' ? 0 : 1,
       useNativeDriver: false,
       tension: 50,
       friction: 7,
     }).start();
-  }, [value]);
+  }, [language]);
 
   const toggleSwitch = () => {
-    const newValue = value === 'en' ? 'bn' : 'en';
-    onValueChange(newValue);
+    const newValue = language === 'en' ? 'bn' : 'en';
+    setLanguage(newValue);
   };
 
   const translateX = animatedValue.interpolate({
@@ -55,14 +49,14 @@ const LanguageSwitch: React.FC<LanguageSwitchProps> = ({
           <Text
             style={[
               styles.label,
-              value === 'en' && styles.activeLabel,
+              language === 'en' && styles.activeLabel,
             ]}>
             EN
           </Text>
           <Text
             style={[
               styles.label,
-              value === 'bn' && styles.activeLabel,
+              language === 'bn' && styles.activeLabel,
             ]}>
             বাং
           </Text>
@@ -75,7 +69,7 @@ const LanguageSwitch: React.FC<LanguageSwitchProps> = ({
             },
           ]}>
           <Text style={styles.thumbText}>
-            {value === 'en' ? 'EN' : 'বাং'}
+            {language === 'en' ? 'EN' : 'বাং'}
           </Text>
         </Animated.View>
       </Animated.View>

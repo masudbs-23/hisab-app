@@ -19,6 +19,7 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useAuth} from '../context/AuthContext';
+import {useLanguage} from '../context/LanguageContext';
 import {
   getUserTransactions,
   getCurrentBalance,
@@ -59,6 +60,7 @@ interface Transaction {
 
 const HomeScreen = ({navigation}: any) => {
   const {user} = useAuth();
+  const {t} = useLanguage();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [summary, setSummary] = useState({
@@ -86,12 +88,26 @@ const HomeScreen = ({navigation}: any) => {
   const [cards, setCards] = useState<any[]>([]);
   const [selectedCard, setSelectedCard] = useState<any>(null);
   
-  // Language state
-  const [language, setLanguage] = useState<'en' | 'bn'>('en');
-  
   // Title suggestions
-  const expenseSuggestions = ['Rent', 'Travel', 'Shopping', 'Food', 'Bills', 'Entertainment', 'Health', 'Education'];
-  const incomeSuggestions = ['Salary', 'Part-time', 'Freelance', 'Business', 'Investment', 'Gift', 'Bonus'];
+  const expenseSuggestions = [
+    t('suggestions.rent'),
+    t('suggestions.travel'),
+    t('suggestions.shopping'),
+    t('suggestions.food'),
+    t('suggestions.bills'),
+    t('suggestions.entertainment'),
+    t('suggestions.health'),
+    t('suggestions.education'),
+  ];
+  const incomeSuggestions = [
+    t('suggestions.salary'),
+    t('suggestions.partTime'),
+    t('suggestions.freelance'),
+    t('suggestions.business'),
+    t('suggestions.investment'),
+    t('suggestions.gift'),
+    t('suggestions.bonus'),
+  ];
 
   useEffect(() => {
     loadData();
@@ -380,7 +396,7 @@ const HomeScreen = ({navigation}: any) => {
             item.type === 'income' ? styles.incomeBadge : styles.expenseBadge,
           ]}>
           <Text style={styles.typeText}>
-            {item.type === 'income' ? 'Income' : 'Expense'}
+            {item.type === 'income' ? t('transaction.income') : t('transaction.expense')}
           </Text>
         </View>
         <Text style={styles.bank}>{item.bank}</Text>
@@ -395,13 +411,13 @@ const HomeScreen = ({navigation}: any) => {
       return (
         <View style={styles.emptyCardContainer}>
           <Icon name="card-outline" size={60} color="#dfe6e9" />
-          <Text style={styles.emptyCardText}>No cards added yet</Text>
+          <Text style={styles.emptyCardText}>{t('home.noCards')}</Text>
           <TouchableOpacity
             style={styles.addCardButton}
             onPress={() => navigation.navigate('Cards')}
             activeOpacity={0.8}>
             <Icon name="add-circle" size={20} color="#fff" />
-            <Text style={styles.addCardButtonText}>Add Card</Text>
+            <Text style={styles.addCardButtonText}>{t('home.addCard')}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -455,14 +471,14 @@ const HomeScreen = ({navigation}: any) => {
 
                 <View style={styles.cardFooter}>
                   <View>
-                    <Text style={styles.cardLabel}>CARDHOLDER</Text>
+                    <Text style={styles.cardLabel}>{t('home.cardholder')}</Text>
                     <Text style={styles.cardName}>{card.cardName}</Text>
                   </View>
                 </View>
 
                 <View style={styles.cardBalanceRow}>
                   <View style={styles.cardBalanceContainer}>
-                    <Text style={styles.cardBalanceLabel}>BALANCE</Text>
+                    <Text style={styles.cardBalanceLabel}>{t('home.balance')}</Text>
                     <View style={styles.balanceRow}>
                       <Text style={styles.cardBalance}>
                         {balanceVisible ? formatCurrency(card.balance) : '৳ •••••'}
@@ -872,10 +888,7 @@ const HomeScreen = ({navigation}: any) => {
         </View>
 
         <View style={styles.headerRight}>
-          <LanguageSwitch 
-            value={language} 
-            onValueChange={setLanguage}
-          />
+          <LanguageSwitch />
         </View>
       </View>
 
@@ -893,33 +906,33 @@ const HomeScreen = ({navigation}: any) => {
             style={[styles.actionButton, styles.incomeButton]}
             onPress={() => navigation.navigate('AddTransaction', {type: 'income'})}>
             <Icon name="add-circle" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Add Income</Text>
+            <Text style={styles.actionButtonText}>{t('home.addIncome')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.actionButton, styles.expenseButton]}
             onPress={() => navigation.navigate('AddTransaction', {type: 'expense'})}>
             <Icon name="remove-circle" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Add Expense</Text>
+            <Text style={styles.actionButtonText}>{t('home.addExpense')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.actionButton, styles.statisticsButton]}
             onPress={() => navigation.navigate('Statistics')}>
             <Icon name="stats-chart" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Statistics</Text>
+            <Text style={styles.actionButtonText}>{t('home.statistics')}</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.transactionsHeaderRow}>
           <View>
-            <Text style={styles.transactionsTitle}>Transactions</Text>
+            <Text style={styles.transactionsTitle}>{t('home.transactions')}</Text>
           </View>
           <TouchableOpacity
             style={styles.seeAllButton}
             onPress={() => navigation.navigate('Transaction')}
             activeOpacity={0.7}>
-            <Text style={styles.seeAllText}>See all</Text>
+            <Text style={styles.seeAllText}>{t('home.seeAll')}</Text>
             <Icons name="chevron-right" size={18} color="#00b894" />
           </TouchableOpacity>
         </View>
@@ -935,9 +948,9 @@ const HomeScreen = ({navigation}: any) => {
         ) : (
           <View style={styles.emptyContainer}>
             <Icon name="wallet-outline" size={80} color="#dfe6e9" />
-            <Text style={styles.emptyText}>No transactions yet</Text>
+            <Text style={styles.emptyText}>{t('home.noTransactions')}</Text>
             <Text style={styles.emptySubText}>
-              Add income or expense to get started
+              {t('home.getStarted')}
             </Text>
           </View>
         )}

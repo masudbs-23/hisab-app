@@ -192,6 +192,14 @@ const CardsScreen = ({navigation}: any) => {
     </TouchableOpacity>
   );
 
+  // Filter out card types that are already added
+  const getAvailableCardTypes = () => {
+    const addedCardTypes = cards.map(card => card.cardType);
+    return CARD_TYPES.filter(cardType => !addedCardTypes.includes(cardType.type));
+  };
+
+  const availableCardTypes = getAvailableCardTypes();
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar
@@ -219,14 +227,26 @@ const CardsScreen = ({navigation}: any) => {
           )}
         </View>
 
-        <View style={styles.cardsContainer}>
-          <Text style={styles.sectionTitle}>Add New Card</Text>
-          <View style={styles.cardTypesGrid}>
-            {CARD_TYPES.map(cardType => (
-              <CardTypeSelector key={cardType.type} cardTypeData={cardType} />
-            ))}
+        {availableCardTypes.length > 0 && (
+          <View style={styles.cardsContainer}>
+            <Text style={styles.sectionTitle}>Add New Card</Text>
+            <View style={styles.cardTypesGrid}>
+              {availableCardTypes.map(cardType => (
+                <CardTypeSelector key={cardType.type} cardTypeData={cardType} />
+              ))}
+            </View>
           </View>
-        </View>
+        )}
+
+        {availableCardTypes.length === 0 && cards.length > 0 && (
+          <View style={styles.allCardsAddedContainer}>
+            <Icon name="checkmark-circle" size={50} color="#00b894" />
+            <Text style={styles.allCardsAddedText}>All card types added!</Text>
+            <Text style={styles.allCardsAddedSubText}>
+              You have added all available card types
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -416,6 +436,30 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
     letterSpacing: 0.5,
+  },
+  allCardsAddedContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    backgroundColor: '#f0f9ff',
+    borderRadius: 16,
+    marginHorizontal: 20,
+    marginTop: 10,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#d0f0e6',
+  },
+  allCardsAddedText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#00b894',
+    marginTop: 15,
+  },
+  allCardsAddedSubText: {
+    fontSize: 13,
+    color: '#636e72',
+    marginTop: 5,
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
 });
 
