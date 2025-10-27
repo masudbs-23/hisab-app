@@ -5,11 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Modal,
-  TextInput,
   Alert,
-  Dimensions,
-  Animated,
   StatusBar,
   ImageBackground,
 } from 'react-native';
@@ -25,12 +21,8 @@ const cardBackgrounds = {
 };
 import {
   getUserCards,
-  addCard,
-  updateCardBalance,
   deleteCard,
 } from '../services/DatabaseService';
-
-const {height} = Dimensions.get('window');
 
 interface Card {
   id: number;
@@ -71,16 +63,17 @@ const CARD_TYPES = [
 const CardsScreen = ({navigation}: any) => {
   const {user} = useAuth();
   const [cards, setCards] = useState<Card[]>([]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedCardType, setSelectedCardType] = useState('');
-  const [cardName, setCardName] = useState('');
-  const [initialBalance, setInitialBalance] = useState('');
-  const [cardNumber, setCardNumber] = useState('');
-  const slideAnim = useState(new Animated.Value(height))[0];
 
   useEffect(() => {
     loadCards();
   }, []);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadCards();
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   const loadCards = async () => {
     if (!user) return;
@@ -92,63 +85,8 @@ const CardsScreen = ({navigation}: any) => {
     }
   };
 
-  const openAddCardModal = (cardType: string) => {
-    setSelectedCardType(cardType);
-    setCardName('');
-    setInitialBalance('');
-    setCardNumber('');
-    setModalVisible(true);
-    Animated.timing(slideAnim, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const closeModal = () => {
-    Animated.timing(slideAnim, {
-      toValue: height,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => {
-      setModalVisible(false);
-      setSelectedCardType('');
-      setCardName('');
-      setInitialBalance('');
-      setCardNumber('');
-    });
-  };
-
-  const handleAddCard = async () => {
-    if (!cardName.trim()) {
-      Alert.alert('Error', 'Please enter a card name');
-      return;
-    }
-
-    if (!initialBalance.trim() || isNaN(parseFloat(initialBalance))) {
-      Alert.alert('Error', 'Please enter a valid balance');
-      return;
-    }
-
-    if (!user) return;
-
-    try {
-      const cardTypeData = CARD_TYPES.find(ct => ct.type === selectedCardType);
-      await addCard(user.id, {
-        cardType: selectedCardType,
-        cardName: cardName,
-        balance: parseFloat(initialBalance),
-        cardNumber: cardNumber,
-        color: cardTypeData?.color || '#00b894',
-      });
-
-      Alert.alert('Success', 'Card added successfully!');
-      closeModal();
-      loadCards();
-    } catch (error: any) {
-      console.error('Error adding card:', error);
-      Alert.alert('Error', 'Failed to add card. Please try again.');
-    }
+  const navigateToAddCard = (cardType: string) => {
+    navigation.navigate('AddCard', {cardType});
   };
 
   const handleDeleteCard = (cardId: number, cardName: string) => {
@@ -238,7 +176,7 @@ const CardsScreen = ({navigation}: any) => {
 
   const CardTypeSelector = ({cardTypeData}: any) => (
     <TouchableOpacity
-      onPress={() => openAddCardModal(cardTypeData.type)}
+      onPress={() => navigateToAddCard(cardTypeData.type)}
       activeOpacity={0.8}>
       <ImageBackground
         source={cardBackgrounds[cardTypeData.type as keyof typeof cardBackgrounds]}
@@ -252,87 +190,6 @@ const CardsScreen = ({navigation}: any) => {
         <Icon name="add-circle" size={28} color="#fff" />
       </ImageBackground>
     </TouchableOpacity>
-  );
-
-  const AddCardModal = () => (
-    <Modal
-      animationType="none"
-      transparent={true}
-      visible={modalVisible}
-      onRequestClose={closeModal}>
-      <View style={styles.modalOverlay}>
-        <Animated.View
-          style={[
-            styles.modalContent,
-            {transform: [{translateY: slideAnim}]},
-          ]}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Add {selectedCardType}</Text>
-            <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
-              <Icon name="close" size={24} color="#636e72" />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Card Name</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder="e.g., My VISA Card"
-                placeholderTextColor="#b2bec3"
-                value={cardName}
-                onChangeText={setCardName}
-                autoCorrect={false}
-                autoCapitalize="words"
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Initial Balance (৳)</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Enter amount"
-                placeholderTextColor="#b2bec3"
-                value={initialBalance}
-                onChangeText={setInitialBalance}
-                keyboardType="numeric"
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>
-                Card Number (Optional - Last 4 digits)
-              </Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder="e.g., 1234"
-                placeholderTextColor="#b2bec3"
-                value={cardNumber}
-                onChangeText={setCardNumber}
-                keyboardType="numeric"
-                maxLength={4}
-              />
-            </View>
-
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={closeModal}
-                activeOpacity={0.8}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={handleAddCard}
-                activeOpacity={0.8}>
-                <Text style={styles.saveButtonText}>Add Card</Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-        </Animated.View>
-      </View>
-    </Modal>
   );
 
   return (
@@ -371,13 +228,6 @@ const CardsScreen = ({navigation}: any) => {
           </View>
         </View>
       </ScrollView>
-
-      <AddCardModal />
-
-      <View style={styles.decorativeElements} pointerEvents="none">
-        <View style={[styles.circle, styles.circle1]} />
-        <View style={[styles.circle, styles.circle2]} />
-      </View>
     </SafeAreaView>
   );
 };
@@ -566,126 +416,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
     letterSpacing: 0.5,
-  },
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: height * 0.75,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: -2},
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ecf0f1',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2d3436',
-  },
-  closeButton: {
-    padding: 8,
-  },
-  modalBody: {
-    padding: 20,
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#2d3436',
-    marginBottom: 8,
-  },
-  textInput: {
-    backgroundColor: '#f8f9fa',
-    borderWidth: 1,
-    borderColor: '#dfe6e9',
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    fontSize: 14,
-    color: '#2d3436',
-  },
-  buttonContainer: {
-    marginTop: 10,
-    flexDirection: 'row',
-    gap: 12,
-  },
-  saveButton: {
-    flex: 1,
-    backgroundColor: '#00b894',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    shadowColor: '#00b894',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  saveButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  cancelButton: {
-    flex: 1,
-    paddingVertical: 16,
-    borderRadius: 12,
-    backgroundColor: '#f8f9fa',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#dfe6e9',
-  },
-  cancelButtonText: {
-    color: '#636e72',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  decorativeElements: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1,
-  },
-  circle: {
-    position: 'absolute',
-    borderRadius: 999,
-    opacity: 0.1,
-  },
-  circle1: {
-    width: 200,
-    height: 200,
-    backgroundColor: '#00b894',
-    top: -100,
-    right: -100,
-  },
-  circle2: {
-    width: 150,
-    height: 150,
-    backgroundColor: '#00a085',
-    bottom: -75,
-    left: -75,
   },
 });
 

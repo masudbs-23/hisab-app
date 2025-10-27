@@ -75,13 +75,6 @@ const OnboardingScreen = ({navigation, onComplete}: any) => {
           By continuing, you agree to our Terms of Service and Privacy Policy
         </Text>
       </View>
-
-      {/* Decorative Elements - Add pointerEvents="none" */}
-      <View style={styles.decorativeElements} pointerEvents="none">
-        <View style={[styles.circle, styles.circle1]} />
-        <View style={[styles.circle, styles.circle2]} />
-        <View style={[styles.circle, styles.circle3]} />
-      </View>
       </View>
     </SafeAreaView>
   );
@@ -246,40 +239,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 16,
     paddingHorizontal: 20,
-  },
-  decorativeElements: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1,
-  },
-  circle: {
-    position: 'absolute',
-    borderRadius: 999,
-    opacity: 0.1,
-  },
-  circle1: {
-    width: 200,
-    height: 200,
-    backgroundColor: '#00b894',
-    top: -100,
-    right: -100,
-  },
-  circle2: {
-    width: 150,
-    height: 150,
-    backgroundColor: '#00a085',
-    bottom: -75,
-    left: -75,
-  },
-  circle3: {
-    width: 100,
-    height: 100,
-    backgroundColor: '#00b894',
-    top: height * 0.3,
-    right: -50,
   },
 });
 

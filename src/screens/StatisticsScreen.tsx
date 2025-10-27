@@ -312,12 +312,6 @@ const StatisticsScreen = ({navigation}: any) => {
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
-
-      {/* Decorative Elements */}
-      <View style={styles.decorativeElements} pointerEvents="none">
-        <View style={[styles.circle, styles.circle1]} />
-        <View style={[styles.circle, styles.circle2]} />
-      </View>
     </SafeAreaView>
   );
 };
@@ -325,7 +319,7 @@ const StatisticsScreen = ({navigation}: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fffe',
+    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
@@ -635,33 +629,6 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: 20,
-  },
-  decorativeElements: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1,
-  },
-  circle: {
-    position: 'absolute',
-    borderRadius: 999,
-    opacity: 0.1,
-  },
-  circle1: {
-    width: 200,
-    height: 200,
-    backgroundColor: '#00b894',
-    top: -100,
-    right: -100,
-  },
-  circle2: {
-    width: 150,
-    height: 150,
-    backgroundColor: '#00a085',
-    bottom: -75,
-    left: -75,
   },
 });
 

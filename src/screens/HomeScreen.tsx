@@ -26,8 +26,7 @@ import {
   updateCardBalance,
 } from '../services/DatabaseService';
 import {readAndParseSMS, requestSMSPermission, testSMSParsing} from '../services/SMSService';
-import Button from '../components/Button';
-import Input from '../components/Input';
+import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LanguageSwitch from '../components/LanguageSwitch';
 
 const {width, height} = Dimensions.get('window');
@@ -85,15 +84,10 @@ const HomeScreen = ({navigation}: any) => {
   // Title suggestions
   const expenseSuggestions = ['Rent', 'Travel', 'Shopping', 'Food', 'Bills', 'Entertainment', 'Health', 'Education'];
   const incomeSuggestions = ['Salary', 'Part-time', 'Freelance', 'Business', 'Investment', 'Gift', 'Bonus'];
-  
-  // Month Filter
-  const [selectedMonth, setSelectedMonth] = useState<string>('all');
-  const [showMonthFilter, setShowMonthFilter] = useState(false);
 
   useEffect(() => {
     loadData();
     loadCards();
-    requestSMSAccess();
   }, []);
 
   const loadCards = async () => {
@@ -175,40 +169,6 @@ const HomeScreen = ({navigation}: any) => {
     }
   };
 
-  useEffect(() => {
-    filterTransactionsByMonth();
-  }, [selectedMonth, transactions]);
-
-  const filterTransactionsByMonth = () => {
-    if (selectedMonth === 'all') {
-      setFilteredTransactions(transactions);
-      return;
-    }
-
-    const filtered = transactions.filter(txn => {
-      const txnDate = new Date(txn.date);
-      const txnMonthYear = `${txnDate.getFullYear()}-${String(txnDate.getMonth() + 1).padStart(2, '0')}`;
-      return txnMonthYear === selectedMonth;
-    });
-    setFilteredTransactions(filtered);
-  };
-
-  const getAvailableMonths = () => {
-    const months = new Set<string>();
-    transactions.forEach(txn => {
-      const date = new Date(txn.date);
-      const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      months.add(monthYear);
-    });
-    return Array.from(months).sort().reverse();
-  };
-
-  const formatMonthDisplay = (monthStr: string) => {
-    if (monthStr === 'all') return 'All Transactions';
-    const [year, month] = monthStr.split('-');
-    const date = new Date(parseInt(year), parseInt(month) - 1);
-    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  };
 
   const openAddModal = (type: 'income' | 'expense') => {
     setTransactionType(type);
@@ -848,54 +808,19 @@ const HomeScreen = ({navigation}: any) => {
         <View style={styles.transactionsHeaderRow}>
           <View>
             <Text style={styles.transactionsTitle}>Transactions</Text>
-            <Text style={styles.transactionsCount}>
-              {filteredTransactions.length} found
-            </Text>
           </View>
           <TouchableOpacity
-            style={styles.filterButton}
-            onPress={() => setShowMonthFilter(!showMonthFilter)}>
-            <Icon name="filter" size={18} color="#00b894" />
-            <Text style={styles.filterButtonText}>
-              {formatMonthDisplay(selectedMonth)}
-            </Text>
-            <Icon name={showMonthFilter ? "chevron-up" : "chevron-down"} size={18} color="#00b894" />
+            style={styles.seeAllButton}
+            onPress={() => navigation.navigate('Transaction')}
+            activeOpacity={0.7}>
+            <Text style={styles.seeAllText}>See all</Text>
+            <Icons name="chevron-right" size={18} color="#00b894" />
           </TouchableOpacity>
         </View>
 
-        {showMonthFilter && (
-          <View style={styles.monthFilterContainer}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <TouchableOpacity
-                style={[styles.monthChip, selectedMonth === 'all' && styles.monthChipActive]}
-                onPress={() => {
-                  setSelectedMonth('all');
-                  setShowMonthFilter(false);
-                }}>
-                <Text style={[styles.monthChipText, selectedMonth === 'all' && styles.monthChipTextActive]}>
-                  All
-                </Text>
-              </TouchableOpacity>
-              {getAvailableMonths().map(month => (
-                <TouchableOpacity
-                  key={month}
-                  style={[styles.monthChip, selectedMonth === month && styles.monthChipActive]}
-                  onPress={() => {
-                    setSelectedMonth(month);
-                    setShowMonthFilter(false);
-                  }}>
-                  <Text style={[styles.monthChipText, selectedMonth === month && styles.monthChipTextActive]}>
-                    {formatMonthDisplay(month)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        )}
-
         {filteredTransactions.length > 0 ? (
           <FlatList
-            data={filteredTransactions}
+            data={filteredTransactions.slice(0, 5)}
             renderItem={({item}) => <TransactionCard item={item} />}
             keyExtractor={item => item.id}
             scrollEnabled={false}
@@ -906,9 +831,7 @@ const HomeScreen = ({navigation}: any) => {
             <Icon name="wallet-outline" size={80} color="#dfe6e9" />
             <Text style={styles.emptyText}>No transactions yet</Text>
             <Text style={styles.emptySubText}>
-              {selectedMonth === 'all' 
-                ? 'Add income or expense to get started'
-                : 'No transactions in this month'}
+              Add income or expense to get started
             </Text>
           </View>
         )}
@@ -916,12 +839,6 @@ const HomeScreen = ({navigation}: any) => {
 
       <AddTransactionModal />
       <TransactionModal />
-
-      <View style={styles.decorativeElements} pointerEvents="none">
-        <View style={[styles.circle, styles.circle1]} />
-        <View style={[styles.circle, styles.circle2]} />
-        <View style={[styles.circle, styles.circle3]} />
-      </View>
     </SafeAreaView>
   );
 };
@@ -1268,46 +1185,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 6,
   },
-  // Filter
-  filterButton: {
+  // See All Button
+  seeAllButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#d5f4e6',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 6,
+    gap: 4,
   },
-  filterButtonText: {
-    fontSize: 12,
+  seeAllText: {
+    fontSize: 14,
     color: '#00b894',
     fontWeight: '600',
-    maxWidth: 120,
-  },
-  monthFilterContainer: {
-    paddingHorizontal: 15,
-    marginBottom: 10,
-  },
-  monthChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#f8f9fa',
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#dfe6e9',
-  },
-  monthChipActive: {
-    backgroundColor: '#00b894',
-    borderColor: '#00b894',
-  },
-  monthChipText: {
-    fontSize: 14,
-    color: '#636e72',
-    fontWeight: '600',
-  },
-  monthChipTextActive: {
-    color: '#fff',
   },
   // Add Transaction Modal
   inputContainer: {
@@ -1505,40 +1392,6 @@ const styles = StyleSheet.create({
     color: '#b2bec3',
     marginTop: 5,
     textAlign: 'center',
-  },
-  decorativeElements: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1,
-  },
-  circle: {
-    position: 'absolute',
-    borderRadius: 999,
-    opacity: 0.1,
-  },
-  circle1: {
-    width: 200,
-    height: 200,
-    backgroundColor: '#00b894',
-    top: -100,
-    right: -100,
-  },
-  circle2: {
-    width: 150,
-    height: 150,
-    backgroundColor: '#00a085',
-    bottom: -75,
-    left: -75,
-  },
-  circle3: {
-    width: 100,
-    height: 100,
-    backgroundColor: '#00b894',
-    top: height * 0.3,
-    right: -50,
   },
 });
 

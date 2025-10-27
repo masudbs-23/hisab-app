@@ -135,14 +135,6 @@ const LoginScreen = ({navigation}: any) => {
           <Text style={styles.linkTextBold}>Register</Text>
         </TouchableOpacity>
       </View>
-
-      {/* Decorative Elements - Add pointerEvents="none" */}
-      <View style={styles.decorativeElements} pointerEvents="none">
-        <View style={[styles.circle, styles.circle1]} />
-        <View style={[styles.circle, styles.circle2]} />
-        <View style={[styles.circle, styles.circle3]} />
-        <View style={[styles.circle, styles.circle4]} />
-      </View>
     </View>
   );
 };
@@ -153,7 +145,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#f8fffe',
+    backgroundColor: '#FFFFFF',
     position: 'relative',
   },
   logoContainer: {
@@ -258,47 +250,6 @@ const styles = StyleSheet.create({
     color: '#00a085',
     fontSize: 14,
     fontWeight: '600',
-  },
-  decorativeElements: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1,
-  },
-  circle: {
-    position: 'absolute',
-    borderRadius: 999,
-    opacity: 0.08,
-  },
-  circle1: {
-    width: 180,
-    height: 180,
-    backgroundColor: '#00b894',
-    top: -90,
-    right: -90,
-  },
-  circle2: {
-    width: 120,
-    height: 120,
-    backgroundColor: '#00a085',
-    bottom: -60,
-    left: -60,
-  },
-  circle3: {
-    width: 80,
-    height: 80,
-    backgroundColor: '#00b894',
-    top: height * 0.25,
-    right: -40,
-  },
-  circle4: {
-    width: 60,
-    height: 60,
-    backgroundColor: '#00a085',
-    bottom: height * 0.3,
-    right: width * 0.1,
   },
 });
 

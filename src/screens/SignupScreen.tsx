@@ -72,15 +72,6 @@ const SignupScreen = ({navigation}: any) => {
 
   return (
     <View style={styles.container}>
-      {/* Decorative Elements - Must be first with pointerEvents="none" */}
-      <View style={styles.decorativeElements} pointerEvents="none">
-        <View style={[styles.circle, styles.circle1]} />
-        <View style={[styles.circle, styles.circle2]} />
-        <View style={[styles.circle, styles.circle3]} />
-        <View style={[styles.circle, styles.circle4]} />
-        <View style={[styles.circle, styles.circle5]} />
-      </View>
-
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
@@ -157,7 +148,7 @@ const SignupScreen = ({navigation}: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fffe',
+    backgroundColor: '#FFFFFF',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -292,54 +283,6 @@ const styles = StyleSheet.create({
     color: '#00b894',
     fontWeight: '600',
     textDecorationLine: 'underline',
-  },
-  decorativeElements: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1,
-  },
-  circle: {
-    position: 'absolute',
-    borderRadius: 999,
-    opacity: 0.08,
-  },
-  circle1: {
-    width: 160,
-    height: 160,
-    backgroundColor: '#00b894',
-    top: -80,
-    right: -80,
-  },
-  circle2: {
-    width: 100,
-    height: 100,
-    backgroundColor: '#00a085',
-    bottom: -50,
-    left: -50,
-  },
-  circle3: {
-    width: 70,
-    height: 70,
-    backgroundColor: '#00b894',
-    top: height * 0.15,
-    right: -35,
-  },
-  circle4: {
-    width: 50,
-    height: 50,
-    backgroundColor: '#00a085',
-    bottom: height * 0.25,
-    right: width * 0.15,
-  },
-  circle5: {
-    width: 40,
-    height: 40,
-    backgroundColor: '#00b894',
-    top: height * 0.6,
-    left: -20,
   },
 });
 

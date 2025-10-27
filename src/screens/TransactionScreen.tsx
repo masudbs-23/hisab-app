@@ -37,7 +37,7 @@ interface Transaction {
   accountNo?: string;
 }
 
-const TransactionScreen = () => {
+const TransactionScreen = ({navigation}: any) => {
   const {user} = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
@@ -309,6 +309,11 @@ const TransactionScreen = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}>
+          <Icon name="arrow-back" size={24} color="#2d3436" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Transactions</Text>
         <TouchableOpacity
           style={styles.filterButton}
@@ -385,13 +390,6 @@ const TransactionScreen = () => {
       </ScrollView>
 
       <TransactionModal />
-
-      {/* Decorative Elements */}
-      <View style={styles.decorativeElements} pointerEvents="none">
-        <View style={[styles.circle, styles.circle1]} />
-        <View style={[styles.circle, styles.circle2]} />
-        <View style={[styles.circle, styles.circle3]} />
-      </View>
     </SafeAreaView>
   );
 };
@@ -400,21 +398,26 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    paddingBottom: 80,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    // paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 15,
     zIndex: 10,
+  },
+  backButton: {
+    padding: 8,
+    marginRight: 8,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#2d3436',
+    flex: 1,
+    textAlign: 'center',
   },
   filterButton: {
     padding: 8,
@@ -717,40 +720,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#00b894',
-  },
-  decorativeElements: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1,
-  },
-  circle: {
-    position: 'absolute',
-    borderRadius: 999,
-    opacity: 0.1,
-  },
-  circle1: {
-    width: 200,
-    height: 200,
-    backgroundColor: '#00b894',
-    top: -100,
-    right: -100,
-  },
-  circle2: {
-    width: 150,
-    height: 150,
-    backgroundColor: '#00a085',
-    bottom: -75,
-    left: -75,
-  },
-  circle3: {
-    width: 100,
-    height: 100,
-    backgroundColor: '#00b894',
-    top: height * 0.3,
-    right: -50,
   },
 });
 
