@@ -83,9 +83,9 @@ const ProfileScreen = ({navigation}: any) => {
       {/* Header Bar with Title and Logout */}
       <View style={styles.headerBar}>
         <Text style={styles.headerTitle}>Profile</Text>
-        <TouchableOpacity onPress={handleLogout} style={styles.logoutIcon}>
+        {/* <TouchableOpacity onPress={handleLogout} style={styles.logoutIcon}>
           <Icon name="logout" size={24} color="#F44336" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       <ScrollView style={styles.container}>
