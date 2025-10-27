@@ -9,6 +9,7 @@ import StatisticsScreen from '../screens/StatisticsScreen';
 import AddCardScreen from '../screens/AddCardScreen';
 import NotificationScreen from '../screens/NotificationScreen';
 import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
+import AddTransactionScreen from '../screens/AddTransactionScreen';
 import {useAuth} from '../context/AuthContext';
 
 const Stack = createStackNavigator();
@@ -43,6 +44,7 @@ const AppNavigator = () => {
             <Stack.Screen name="AddCard" component={AddCardScreen} />
             <Stack.Screen name="Notification" component={NotificationScreen} />
             <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+            <Stack.Screen name="AddTransaction" component={AddTransactionScreen} />
           </>
         )}
       </Stack.Navigator>

@@ -14,6 +14,7 @@ import {
   RefreshControl,
   TextInput,
   StatusBar,
+  ImageBackground,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -28,6 +29,13 @@ import {
 import {readAndParseSMS, requestSMSPermission, testSMSParsing} from '../services/SMSService';
 import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LanguageSwitch from '../components/LanguageSwitch';
+
+// Import card background images
+const cardBackgrounds = {
+  'VISA': require('../assets/visa.png'),
+  'Mastercard': require('../assets/master.png'),
+  'American Express': require('../assets/american.png'),
+};
 
 const {width, height} = Dimensions.get('window');
 
@@ -89,6 +97,14 @@ const HomeScreen = ({navigation}: any) => {
     loadData();
     loadCards();
   }, []);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadCards();
+      loadData();
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   const loadCards = async () => {
     if (!user) return;
@@ -372,29 +388,119 @@ const HomeScreen = ({navigation}: any) => {
     </TouchableOpacity>
   );
 
-  const SummaryCard = () => (
-    <View style={styles.summaryCard}>
-      <Text style={styles.balanceTitle}>Balance</Text>
-      <View style={styles.balanceRow}>
-        <Text
-          style={[
-            styles.balanceAmount,
-            summary.balance >= 0 ? styles.incomeAmount : styles.expenseAmount,
-          ]}>
-          {balanceVisible ? formatCurrency(Math.abs(summary.balance)) : '৳ •••••'}
-        </Text>
-        <TouchableOpacity 
-          onPress={() => setBalanceVisible(!balanceVisible)}
-          style={styles.eyeButton}>
-          <Icon 
-            name={balanceVisible ? "eye-outline" : "eye-off-outline"} 
-            size={24} 
-            color="#636e72" 
-          />
-        </TouchableOpacity>
+  const CardStack = () => {
+    const [activeCardIndex, setActiveCardIndex] = useState(0);
+
+    if (cards.length === 0) {
+      return (
+        <View style={styles.emptyCardContainer}>
+          <Icon name="card-outline" size={60} color="#dfe6e9" />
+          <Text style={styles.emptyCardText}>No cards added yet</Text>
+          <TouchableOpacity
+            style={styles.addCardButton}
+            onPress={() => navigation.navigate('Cards')}
+            activeOpacity={0.8}>
+            <Icon name="add-circle" size={20} color="#fff" />
+            <Text style={styles.addCardButtonText}>Add Card</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    const handleScroll = (event: any) => {
+      const scrollPosition = event.nativeEvent.contentOffset.x;
+      const cardWidth = width - 40; // 20px margin on each side
+      const index = Math.round(scrollPosition / cardWidth);
+      setActiveCardIndex(index);
+    };
+
+    return (
+      <View style={styles.cardStackContainer}>
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={width - 40}
+          decelerationRate="fast"
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          contentContainerStyle={styles.cardScrollContainer}>
+          {cards.map((card, index) => (
+            <TouchableOpacity
+              key={card.id}
+              // activeOpacity={0.95}
+              onPress={() => navigation.navigate('Cards')}
+              style={styles.cardWrapper}>
+              <ImageBackground
+                source={cardBackgrounds[card.cardType as keyof typeof cardBackgrounds]}
+                style={styles.cardContainer}
+                imageStyle={{borderRadius: 20}}
+                resizeMode="cover">
+                <View style={styles.cardHeader}>
+                  <Icon
+                    name="hardware-chip-outline"
+                    size={40}
+                    color={card.cardType === 'American Express' ? '#F7B600' : 'rgba(255,255,255,0.85)'}
+                  />
+                  <Text style={styles.cardType}>{card.cardType}</Text>
+                </View>
+
+                <View style={styles.cardBody}>
+                  {card.cardNumber && (
+                    <Text style={styles.cardNumber}>
+                      •••• •••• •••• {card.cardNumber}
+                    </Text>
+                  )}
+                </View>
+
+                <View style={styles.cardFooter}>
+                  <View>
+                    <Text style={styles.cardLabel}>CARDHOLDER</Text>
+                    <Text style={styles.cardName}>{card.cardName}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.cardBalanceRow}>
+                  <View style={styles.cardBalanceContainer}>
+                    <Text style={styles.cardBalanceLabel}>BALANCE</Text>
+                    <View style={styles.balanceRow}>
+                      <Text style={styles.cardBalance}>
+                        {balanceVisible ? formatCurrency(card.balance) : '৳ •••••'}
+                      </Text>
+                      <TouchableOpacity 
+                        onPress={() => setBalanceVisible(!balanceVisible)}
+                        style={styles.eyeButtonCard}>
+                        <Icon 
+                          name={balanceVisible ? "eye-outline" : "eye-off-outline"} 
+                          size={18} 
+                          color="rgba(255,255,255,0.9)" 
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              </ImageBackground>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+        
+        {/* Card Indicators */}
+        {cards.length > 1 && (
+          <View style={styles.cardIndicators}>
+            {cards.map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.indicator,
+                  index === activeCardIndex && styles.activeIndicator,
+                ]}
+              />
+            ))}
+          </View>
+        )}
       </View>
-    </View>
-  );
+    );
+  };
 
   const AddTransactionModal = () => (
     <Modal
@@ -779,20 +885,20 @@ const HomeScreen = ({navigation}: any) => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#00b894']} />
         }>
-        <SummaryCard />
+        <CardStack />
 
         {/* Add Income, Expense, and Statistics Buttons */}
         <View style={styles.actionButtonsContainer}>
           <TouchableOpacity
             style={[styles.actionButton, styles.incomeButton]}
-            onPress={() => openAddModal('income')}>
+            onPress={() => navigation.navigate('AddTransaction', {type: 'income'})}>
             <Icon name="add-circle" size={20} color="#fff" />
             <Text style={styles.actionButtonText}>Add Income</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.actionButton, styles.expenseButton]}
-            onPress={() => openAddModal('expense')}>
+            onPress={() => navigation.navigate('AddTransaction', {type: 'expense'})}>
             <Icon name="remove-circle" size={20} color="#fff" />
             <Text style={styles.actionButtonText}>Add Expense</Text>
           </TouchableOpacity>
@@ -837,7 +943,6 @@ const HomeScreen = ({navigation}: any) => {
         )}
       </ScrollView>
 
-      <AddTransactionModal />
       <TransactionModal />
     </SafeAreaView>
   );
@@ -902,39 +1007,172 @@ const styles = StyleSheet.create({
     flex: 1,
     zIndex: 5,
   },
-  summaryCard: {
-    backgroundColor: 'white',
+  // Empty Card State
+  emptyCardContainer: {
     margin: 15,
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#fff',
+    padding: 40,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#f1f3f5',
+    borderStyle: 'dashed',
   },
-  balanceTitle: {
+  emptyCardText: {
     fontSize: 16,
+    color: '#636e72',
+    marginTop: 15,
+    marginBottom: 20,
+    fontWeight: '600',
+  },
+  addCardButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#00b894',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 25,
+    gap: 8,
+  },
+  addCardButtonText: {
+    color: '#fff',
+    fontSize: 15,
     fontWeight: 'bold',
-    color: '#2d3436',
+  },
+  // Card Stack Styles
+  cardStackContainer: {
     marginBottom: 10,
+  },
+  cardScrollContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+  },
+  cardWrapper: {
+    width: width - 40,
+    marginRight: 10,
+  },
+  cardContainer: {
+    width: '100%',
+    height: 220,
+    borderRadius: 20,
+    paddingVertical: 18,
+    justifyContent: 'space-between',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+    paddingLeft:10
+  },
+  cardType: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: 'rgba(255,255,255,0.95)',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: {width: 0, height: 1},
+    textShadowRadius: 3,
+  },
+  cardBody: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingLeft:10
+  },
+  cardNumber: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.95)',
+    letterSpacing: 1.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: {width: 0, height: 1},
+    textShadowRadius: 2,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginBottom: 5,
+    paddingLeft:10
+  },
+  cardLabel: {
+    fontSize: 9,
+    color: 'rgba(255,255,255,0.7)',
+    marginBottom: 4,
+    letterSpacing: 1,
+    fontWeight: '600',
+  },
+  cardName: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.95)',
+    textTransform: 'uppercase',
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: {width: 0, height: 1},
+    textShadowRadius: 2,
+    flexShrink: 1,
+  },
+  cardBalanceRow: {
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.2)',
+    paddingTop: 8,
+  },
+  cardBalanceContainer: {
+    flexDirection: 'column',
+    flex: 1,
+  },
+  cardBalanceLabel: {
+    fontSize: 9,
+    color: 'rgba(255,255,255,0.7)',
+    marginBottom: 4,
+    letterSpacing: 1,
+    fontWeight: '600',
   },
   balanceRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    width: '100%',
   },
-  balanceAmount: {
+  cardBalance: {
     fontSize: 22,
     fontWeight: 'bold',
+    color: 'rgba(255,255,255,0.95)',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: {width: 0, height: 1},
+    textShadowRadius: 3,
     flex: 1,
+    flexShrink: 1,
   },
-  eyeButton: {
-    padding: 8,
-    marginLeft: 15,
+  eyeButtonCard: {
+    padding: 2,
+    marginLeft: 6,
   },
   incomeAmount: {
     color: '#27ae60',
   },
   expenseAmount: {
     color: '#e74c3c',
+  },
+  // Card Indicators
+  cardIndicators: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: -5,
+    marginBottom: 10,
+  },
+  indicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#dfe6e9',
+  },
+  activeIndicator: {
+    backgroundColor: '#00b894',
+    width: 24,
   },
   transactionsHeaderRow: {
     flexDirection: 'row',
